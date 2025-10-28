@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Análise de Anúncios - VITAO ALIMENTOS</title>
+    <!-- Carrega o Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=YOUR_GA_ID"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+    
+      gtag('config', 'YOUR_GA_ID'); // Substitua pelo seu ID
+      // PageView é rastreado automaticamente por esta linha
+    </script>
+    <!-- End Google Analytics -->
+
+    <!-- Meta Pixel Code -->
+    <script>
+    !function(f,b,e,v,n,t,s)
+    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t,s)}(window, document,'script',
+    'https://connect.facebook.net/en_US/fbevents.js');
+    fbq('init', 'YOUR_PIXEL_ID'); // Substitua pelo seu ID
+    fbq('track', 'PageView'); // Rastreia PageView
+    </script>
+    <noscript><img height="1" width="1" style="display:none"
+    src="https://www.facebook.com/tr?id=YOUR_PIXEL_ID&ev=PageView&noscript=1"
+    /></noscript>
+    <!-- End Meta Pixel Code -->
+
+    <style>
+        /* Fonte Inter (padrão do Tailwind) */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        /* NOVAS FONTES: Barlow e Barlow Condensed */
+        @import url('https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* bg-gray-100 */
+            padding: 30px; /* Margem da página */
+        }
+        
+        /* Estilo para o header da tabela ficar fixo no topo durante o scroll vertical */
+        th {
+            position: sticky;
+            top: 0;
+            z-index: 10; /* Z-index para o header da linha */
+            background-color: #f9fafb; /* bg-gray-50 */
+            /* white-space: nowrap; */ /* REMOVIDO - Isso conflitava com <br> */
+            padding-left: 0;
+            padding-right: 0;
+            font-family: 'Barlow', sans-serif; /* Fonte Barlow aplicada a todos os headers */
+        }
+        
+        /* Adicionado white-space: nowrap para todas as células para o sticky funcionar corretamente */
+        td {
+            padding-left: 0;
+            padding-right: 0;
+            /* white-space: nowrap; */ /* REMOVIDO - Deixa as células quebrarem por padrão */
+        }
+
+        /* Cores alternadas nas linhas */
+        tbody tr:nth-child(even) {
+            background-color: #f9fafb; /* bg-gray-50 */
+        }
+        tbody tr:hover {
+            background-color: #f0f9ff; /* bg-blue-50 */
+        }
+        
+        /* Container da tabela com scroll vertical e horizontal */
+        .tabela-container {
+            width: 100%;
+            overflow-x: auto; /* Permite scroll horizontal */
+            overflow-y: auto; /* Permite scroll vertical */
+            max-height: 70vh; /* Altura máxima (aprox. 11 linhas + header) */
+            border-radius: 0.5rem; /* rounded-lg */
+            border: 1px solid #e5e7eb; /* border border-gray-200 */
+            background-color: #ffffff; /* bg-white */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* shadow-lg */
+        }
+        
+        .tabela-anuncios {
+            width: 100%; /* Largura total da div container */
+            table-layout: auto; 
+        }
+
+        /* --- COLUNAS COM LARGURA FIXA E STICKY --- */
+        /* Z-index: 5 para colunas (menor que o header '10') */
+
+        .col-campanha {
+            width: 180px;
+            max-width: 180px;
+            overflow: hidden; /* Alterado de 'auto' para 'hidden' */
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            padding-left: 0.75rem; 
+            position: sticky; /* Coluna Congelada */
+            left: 0;
+            z-index: 5;
+        }
+
+        .col-item-id {
+            width: 100px;
+            max-width: 100px;
+            padding-left: 0.4rem;
+            position: sticky; /* Coluna Congelada */
+            left: 180px; /* 180px (largura col-campanha) */
+            z-index: 5;
+        }
+
+        /* Renomeado de .col-titulo para .col-titulo-item */
+        .col-titulo-item {
+            width: 450px;
+            max-width: 450px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            padding-left: 0.6rem;
+            position: sticky; /* Coluna Congelada */
+            left: 280px; /* 180px + 100px */
+            z-index: 5;
+        }
+
+        /* Z-index: 15 para os headers das colunas sticky (acima do header da linha '10') */
+        thead th.col-campanha,
+        thead th.col-item-id,
+        thead th.col-titulo-item {
+            z-index: 15;
+        }
+
+        /* Fundo para células <td> sticky (para não mostrar conteúdo rolando por trás) */
+        tbody td.col-campanha,
+        tbody td.col-item-id,
+        tbody td.col-titulo-item {
+            background-color: #ffffff; /* bg-white */
+        }
+        /* Cor alternada para células <td> sticky */
+        tbody tr:nth-child(even) td.col-campanha,
+        tbody tr:nth-child(even) td.col-item-id,
+        tbody tr:nth-child(even) td.col-titulo-item {
+            background-color: #f9fafb; /* bg-gray-50 */
+        }
+        /* Cor de hover para células <td> sticky */
+        tbody tr:hover td.col-campanha,
+        tbody tr:hover td.col-item-id,
+        tbody tr:hover td.col-titulo-item {
+            background-color: #f0f9ff; /* bg-blue-50 */
+        }
+
+        /* --- FONTES ESPECÍFICAS (BARLOW CONDENSED) --- */
+        thead th.col-vendas-totais,
+        thead th.col-vendas-ads,
+        thead th.col-receita-ads,
+        thead th.col-invest-ads,
+        thead th.col-estoque {
+            font-family: 'Barlow Condensed', sans-serif;
+        }
+
+        /* Ajuste de overflow para cabeçalho Vendas Totais */
+        /* REMOVIDO - A correção foi tirar o white-space:nowrap do 'th' global
+        thead th.col-vendas-totais {
+            overflow: visible;
+        }
+        */
+
+
+        /* --- NOVAS CLASSES DE COLUNA (baseadas nos headers) --- */
+        
+        .col-vendas-totais {
+            text-align: center;
+            padding-left: 0.8rem;
+            padding-right: 0.6rem;
+            white-space: nowrap; /* ADICIONADO */
+        }
+        .col-vendas-ads {
+            text-align: center;
+            padding-left: 0.6rem;
+            padding-right: 0.6rem;
+            white-space: nowrap; /* ADICIONADO */
+        }
+        .col-receita-ads {
+            text-align: right;
+            padding-right: 0.45rem;
+            white-space: nowrap; /* ADICIONADO */
+        }
+        .col-invest-ads {
+            text-align: right;
+            padding-right: 0.45rem;
+            white-space: nowrap; /* ADICIONADO */
+        }
+        .col-roas {
+            text-align: center;
+            padding-left: 0.6rem;
+            padding-right: 0.6rem;
+            white-space: nowrap; /* ADICIONADO */
+        }
+        .col-roas-obj {
+            text-align: center;
+            padding-left: 0.6rem;
+            padding-right: 0.6rem;
+            white-space: nowrap; /* ADICIONADO */
+        }
+        .col-cvr {
+            padding-left: 0.5rem; /* Alinhado à esquerda por padrão */
+            white-space: nowrap; /* ADICIONADO */
+        }
+        .col-ctr {
+            padding-left: 0.5rem; /* Alinhado à esquerda por padrão */
+            white-space: nowrap; /* ADICIONADO */
+        }
+        .col-estoque {
+            width: 60px;
+            max-width: 60px;
+            text-align: center; /* Centralizado estoque */
+            padding-left: 0.3rem;
+            padding-right: 0.3rem;
+            white-space: nowrap; /* ADICIONADO */
+        }
+        .col-recomendacoes {
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+            /* Deixado sem nowrap para permitir quebra de linha */
+        }
+        
+    </style>
+</head>
+<body>
+
+    <!-- Container principal (sem fundo branco ou sombra) -->
+    <div>
+        <!-- Cabeçalho com Logo, Título e Datas -->
+        <div class="flex items-center justify-between mb-8">
+            
+            <!-- Bloco Esquerda (Logo + Títulos) -->
+            <div class="flex items-center">
+                <!-- Logo -->
+                <img src="https://raichu-uploads.s3.amazonaws.com/logo_vitao-alimentos-integrais_4JUHOS.png" 
+                     alt="Logo VITAO ALIMENTOS" 
+                     class="h-16 mr-4" style="max-height: 64px;">
+                <!-- Títulos -->
+                <div>
+                    <!-- Título Atualizado e Redução de fonte no mobile (sm:) -->
+                    <h1 class="text-xl sm:text-3xl font-bold text-gray-800">Análise ML Product Ads</h1>
+                    <h2 class="text-lg sm:text-xl font-semibold text-gray-600">VITAO ALIMENTOS</h2>
+                </div>
+            </div>
+
+            <!-- Bloco Direita (Datas) -->
+            <div class="text-right">
+                <!-- Fonte menor (text-sm) e line-height reduzido (leading-tight) para mobile -->
+                <h2 class="text-sm leading-tight sm:text-xl font-semibold text-gray-600">Últimos 14 Dias</h2>
+                <!-- Estilo secundário para a data -->
+                <p class="text-xs sm:text-base font-medium text-gray-500">10/10/25 a 24/10/25</p>
+            </div>
+
+        </div>
+
+
+        <!-- Container da tabela com largura fixa e scroll horizontal responsivo -->
+        <!-- ATUALIZADO: Movido bg-white, shadow, border e rounded para este container -->
+        <div class="tabela-container">
+            <table class="tabela-anuncios divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <!-- Colunas com classes atualizadas -->
+                        <th scope="col" class="col-campanha py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Campanha</th>
+                        <th scope="col" class="col-item-id py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Item ID</th>
+                        <th scope="col" class="col-titulo-item py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Título Item</th>
+                        <th scope="col" class="col-vendas-totais py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Vendas<br>Totais</th>
+                        <th scope="col" class="col-vendas-ads py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Vendas<br>Ads</th>
+                        <th scope="col" class="col-receita-ads py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Receita<br>Ads</th>
+                        <th scope="col" class="col-invest-ads py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Invest.<br>Ads</th>
+                        <th scope="col" class="col-roas py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">ROAS</th>
+                        <th scope="col" class="col-roas-obj py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">ROAS<br>Obj.</th>
+                        <th scope="col" class="col-cvr py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">CVR<br>(%)</th>
+                        <th scope="col" class="col-ctr py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">CTR<br>(%)</th>
+                        <th scope="col" class="col-estoque py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Estoque</th>
+                        <th scope="col" class="col-recomendacoes py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Recomendações</th>
+                    </tr>
+                </thead>
+                <!-- DADOS REMOVIDOS E UMA LINHA DE EXEMPLO ADICIONADA -->
+                <tbody class="divide-y divide-gray-200">
+                    <tr>
+                        <td class="col-campanha py-3 text-xs text-gray-700">XXXXX</td>
+                        <td class="col-item-id py-3 text-xs text-gray-700">XXXXX</td>
+                        <td class="col-titulo-item py-3 text-xs text-gray-700">XXXXX</td>
+                        <td class="col-vendas-totais py-3 text-xs text-gray-700">XXXXX</td>
+                        <td class="col-vendas-ads py-3 text-xs text-gray-700">XXXXX</td>
+                        <td class="col-receita-ads py-3 text-xs text-gray-700">XXXXX</td>
+                        <td class="col-invest-ads py-3 text-xs text-gray-700">XXXXX</td>
+                        <td class="col-roas py-3 text-xs text-gray-700">XXXXX</td>
+                        <td class="col-roas-obj py-3 text-xs text-gray-700">XXXXX</td>
+                        <td class="col-cvr py-3 text-xs text-gray-700">XXXXX</td>
+                        <td class="col-ctr py-3 text-xs text-gray-700">XXXXX</td>
+                        <td class="col-estoque py-3 text-xs text-gray-700">XXXXX</td>
+                        <td class="col-recomendacoes py-3 text-xs text-gray-700">XXXXX</td> 
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Rodapé Adicionado -->
+        <footer class="mt-8">
+            <!-- Navegação e Copyright combinados -->
+            <nav class="flex justify-between items-center w-full">
+                
+                <!-- Esquerda: Anterior -->
+                <!-- Estilo da data: text-sm sm:text-base font-medium text-gray-500 -->
+                <!-- Adicionado opacity-50 e cursor-not-allowed para 'apagado' -->
+                <!-- ADICIONADO ID -->
+                <span id="pagination-prev" class="text-sm sm:text-base font-medium text-gray-500 opacity-50 cursor-not-allowed">
+                    &lt; Anterior
+                </span>
+                
+                <!-- Centro: Copyright -->
+                <div class="text-center" style="font-size: 7pt;">
+                    <p class="text-gray-600">
+                        Desenvolvido por 
+                        <!-- ADICIONADO ID -->
+                        <a id="author-link" href="https://www.linkedin.com/in/silasbarboza/?utm_source=roasxacos.onrender.com" target="_blank" rel="noopener noreferrer" class="font-medium text-blue-600 hover:text-blue-800">
+                            Silas Barboza
+                        </a>
+                        | 2025
+                    </p>
+                </div>
+                
+                <!-- Direita: Seguinte -->
+                <!-- ADICIONADO ID -->
+                <span id="pagination-next" class="text-sm sm:text-base font-medium text-gray-500 opacity-50 cursor-not-allowed">
+                    Seguinte &gt;
+                </span>
+            </nav>
+        </footer>
+
+    </div>
+
+    <!-- Scripts de Rastreamento de Eventos -->
+    <script>
+        document.addEventListener('DOMContentLoaded', (event) => {
+
+            // --- Função unificada para rastreamento ---
+            function trackEvent(eventName, eventParams = {}) {
+                console.log('Rastreando Evento:', eventName, eventParams);
+                
+                // Meta Pixel
+                if (typeof fbq === 'function') {
+                    // O Meta Pixel usa 'track' para eventos padrão e personalizados
+                    fbq('track', eventName, eventParams);
+                }
+                
+                // Google Analytics (gtag.js)
+                if (typeof gtag === 'function') {
+                    // gtag usa 'event'
+                    gtag('event', eventName, eventParams);
+                }
+            }
+
+            // --- Evento: Scroll (Dentro da Tabela) ---
+            // Dispara o evento apenas uma vez para evitar spam
+            const tableContainer = document.querySelector('.tabela-container');
+            if (tableContainer) {
+                tableContainer.addEventListener('scroll', () => {
+                    trackEvent('Scroll', {
+                        event_category: 'Interacao Tabela',
+                        event_label: 'Scroll na tabela de anuncios'
+                    });
+                }, { once: true }); // A opção 'once: true' garante que o evento dispare só na primeira rolagem
+            }
+
+            // --- Evento: Clique no Autor ---
+            const authorLink = document.getElementById('author-link');
+            if (authorLink) {
+                authorLink.addEventListener('click', () => {
+                    trackEvent('click_author', {
+                        event_category: 'Navegacao Rodape',
+                        event_label: 'Clique no link do autor (Silas Barboza)'
+                    });
+                });
+            }
+
+            // --- Evento: Clique na Paginação (Anterior/Seguinte) ---
+            const prevLink = document.getElementById('pagination-prev');
+            const nextLink = document.getElementById('pagination-next');
+            
+            function paginationClickListener() {
+                const label = this.id === 'pagination-prev' ? 'Anterior' : 'Seguinte';
+                trackEvent('click_pagination', {
+                    event_category: 'Navegacao Rodape',
+                    event_label: `Clique na paginacao: ${label}`
+                });
+            }
+            
+            if (prevLink) {
+                prevLink.addEventListener('click', paginationClickListener);
+            }
+            if (nextLink) {
+                nextLink.addEventListener('click', paginationClickListener);
+            }
+
+        });
+    </script>
+
+</body>
+</html>
