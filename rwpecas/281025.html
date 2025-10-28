@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Análise de Anúncios - RWPEÇAS</title> <script src="https://cdn.tailwindcss.com"></script>
+
+    <script async src="https://www.googletagmanager.com/gtag/js?id=YOUR_GA_ID"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+    
+      gtag('config', 'YOUR_GA_ID'); // Substitua pelo seu ID
+      // PageView é rastreado automaticamente por esta linha
+    </script>
+    <script>
+    !function(f,b,e,v,n,t,s)
+    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t,s)}(window, document,'script',
+    'https://connect.facebook.net/en_US/fbevents.js');
+    fbq('init', 'YOUR_PIXEL_ID'); // Substitua pelo seu ID
+    fbq('track', 'PageView'); // Rastreia PageView
+    </script>
+    <noscript><img height="1" width="1" style="display:none"
+    src="https://www.facebook.com/tr?id=YOUR_PIXEL_ID&ev=PageView&noscript=1"
+    /></noscript>
+    <style>
+        /* Fonte Inter (padrão do Tailwind) */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        /* NOVAS FONTES: Barlow e Barlow Condensed */
+        @import url('https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* bg-gray-100 */
+            padding: 30px; /* Margem da página */
+        }
+        
+        /* Estilo para o header da tabela ficar fixo no topo durante o scroll vertical */
+        th {
+            position: sticky; /* Mantém o header da linha fixo no topo */
+            top: 0;
+            z-index: 10; /* Z-index para o header da linha */
+            background-color: #f9fafb; /* bg-gray-50 */
+            padding-left: 0;
+            padding-right: 0;
+            font-family: 'Barlow', sans-serif; /* Fonte Barlow aplicada a todos os headers */
+        }
+        
+        td {
+            padding-left: 0;
+            padding-right: 0;
+        }
+
+        /* Cores alternadas nas linhas */
+        tbody tr:nth-child(even) {
+            background-color: #f9fafb; /* bg-gray-50 */
+        }
+        tbody tr:hover {
+            background-color: #f0f9ff; /* bg-blue-50 */
+        }
+        
+        /* Container da tabela com scroll vertical e horizontal */
+        .tabela-container {
+            width: 100%;
+            overflow-x: auto; /* Permite scroll horizontal */
+            overflow-y: auto; /* Permite scroll vertical */
+            max-height: 70vh; /* Altura máxima */
+            border-radius: 0.5rem; /* rounded-lg */
+            border: 1px solid #e5e7eb; /* border border-gray-200 */
+            background-color: #ffffff; /* bg-white */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* shadow-lg */
+        }
+        
+        .tabela-anuncios {
+            width: 100%; /* Largura total da div container */
+            table-layout: auto; 
+        }
+
+        /* --- COLUNAS COM LARGURA FIXA --- */
+        .col-campanha {
+            width: 180px;
+            max-width: 180px;
+            overflow: hidden; 
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            padding-left: 0.75rem; 
+        }
+        .col-item-id {
+            width: 100px;
+            max-width: 100px;
+            padding-left: 0.4rem;
+        }
+        .col-titulo-item {
+            width: 450px;
+            max-width: 450px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            padding-left: 0.6rem;
+        }
+        .col-vendas-totais { text-align: center; padding-left: 0.8rem; padding-right: 0.6rem; white-space: nowrap; }
+        .col-vendas-ads { text-align: center; padding-left: 0.6rem; padding-right: 0.6rem; white-space: nowrap; }
+        .col-receita-ads { text-align: right; padding-right: 0.45rem; white-space: nowrap; }
+        .col-invest-ads { text-align: right; padding-right: 0.45rem; white-space: nowrap; }
+        .col-roas { text-align: center; padding-left: 0.6rem; padding-right: 0.6rem; white-space: nowrap; }
+        .col-roas-obj { text-align: center; padding-left: 0.6rem; padding-right: 0.6rem; white-space: nowrap; }
+        .col-cvr { padding-left: 0.5rem; white-space: nowrap; }
+        .col-ctr { padding-left: 0.5rem; white-space: nowrap; }
+        .col-estoque { width: 60px; max-width: 60px; text-align: center; padding-left: 0.3rem; padding-right: 0.3rem; white-space: nowrap; }
+        .col-recomendacoes { padding-left: 0.5rem; padding-right: 0.5rem; }
+
+        /* --- FONTES ESPECÍFICAS --- */
+        thead th.col-vendas-totais, thead th.col-vendas-ads, thead th.col-receita-ads, thead th.col-invest-ads, thead th.col-estoque {
+            font-family: 'Barlow Condensed', sans-serif;
+        }
+    </style>
+</head>
+<body>
+
+    <div>
+        <div class="flex items-center justify-between mb-8">
+            <div class="flex items-center">
+                <img src="https://i.imgur.com/GcnvVUR.png" 
+                     alt="Logo RWPEÇAS" 
+                     class="h-16 mr-4" style="max-height: 64px;">
+                <div>
+                    <h1 class="text-xl sm:text-3xl font-bold text-gray-800">Análise ML Product Ads</h1>
+                    <h2 class="text-lg sm:text-xl font-semibold text-gray-600">RWPEÇAS</h2>
+                </div>
+            </div>
+            <div class="text-right">
+                <h2 class="text-sm leading-tight sm:text-xl font-semibold text-gray-600">Últimos 14 Dias</h2>
+                <p class="text-xs sm:text-base font-medium text-gray-500">14/10/25 a 27/10/25</p>
+            </div>
+        </div>
+
+        <div class="tabela-container">
+            <table class="tabela-anuncios divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col" class="col-campanha py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Campanha</th>
+                        <th scope="col" class="col-item-id py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Item ID</th>
+                        <th scope="col" class="col-titulo-item py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Título Item</th>
+                        <th scope="col" class="col-vendas-totais py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Vendas<br>Totais</th>
+                        <th scope="col" class="col-vendas-ads py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Vendas<br>Ads</th>
+                        <th scope="col" class="col-receita-ads py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Receita<br>Ads</th>
+                        <th scope="col" class="col-invest-ads py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Invest.<br>Ads</th>
+                        <th scope="col" class="col-roas py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">ROAS</th>
+                        <th scope="col" class="col-roas-obj py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">ROAS<br>Obj.</th>
+                        <th scope="col" class="col-cvr py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">CVR<br>(%)</th>
+                        <th scope="col" class="col-ctr py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">CTR<br>(%)</th>
+                        <th scope="col" class="col-estoque py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Estoque</th>
+                        <th scope="col" class="col-recomendacoes py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Recomendações</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                    <tr>
+                        <td class="col-campanha py-3 text-xs text-gray-700">Campanha Lanternas</td>
+                        <td class="col-item-id py-3 text-xs text-gray-700">1909576887</td>
+                        <td class="col-titulo-item py-3 text-xs text-gray-700">Lanterna Teto Delimitadora Mb Atego Axor Acello Le Ou Ld Preto</td>
+                        <td class="col-vendas-totais py-3 text-xs text-gray-700">3</td>
+                        <td class="col-vendas-ads py-3 text-xs text-gray-700">14</td>
+                        <td class="col-receita-ads py-3 text-xs text-gray-700">R$151,68</td>
+                        <td class="col-invest-ads py-3 text-xs text-gray-700">R$6,55</td>
+                        <td class="col-roas py-3 text-xs text-gray-700">23,16x</td>
+                        <td class="col-roas-obj py-3 text-xs text-gray-700">20</td>
+                        <td class="col-cvr py-3 text-xs text-gray-700">20,0%</td>
+                        <td class="col-ctr py-3 text-xs text-gray-700">0,15%</td>
+                        <td class="col-estoque py-3 text-xs text-gray-700">17</td>
+                        <td class="col-recomendacoes py-3 text-xs text-gray-700">Repor Estoque</td> 
+                    </tr>
+                    <tr>
+                        <td class="col-campanha py-3 text-xs text-gray-700">Campanha Lanternas</td>
+                        <td class="col-item-id py-3 text-xs text-gray-700">3435269023</td>
+                        <td class="col-titulo-item py-3 text-xs text-gray-700">Par Lanterna Lateral De Seta Para Volvo Fh De 2004 A 2009</td>
+                        <td class="col-vendas-totais py-3 text-xs text-gray-700">8</td>
+                        <td class="col-vendas-ads py-3 text-xs text-gray-700">2</td>
+                        <td class="col-receita-ads py-3 text-xs text-gray-700">R$731,01</td>
+                        <td class="col-invest-ads py-3 text-xs text-gray-700">R$11,43</td>
+                        <td class="col-roas py-3 text-xs text-gray-700">63,94x</td>
+                        <td class="col-roas-obj py-3 text-xs text-gray-700">20</td>
+                        <td class="col-cvr py-3 text-xs text-gray-700">32,0%</td>
+                        <td class="col-ctr py-3 text-xs text-gray-700">0,25%</td>
+                        <td class="col-estoque py-3 text-xs text-gray-700">10</td>
+                        <td class="col-recomendacoes py-3 text-xs text-gray-700">Repor Estoque</td> 
+                    </tr>
+                    <tr>
+                        <td class="col-campanha py-3 text-xs text-gray-700">Campanha Lanternas</td>
+                        <td class="col-item-id py-3 text-xs text-gray-700">1909565451</td>
+                        <td class="col-titulo-item py-3 text-xs text-gray-700">Par Lanterna Teto Delimitadora Mb Atego Axor Acello Le + Ld Branco</td>
+                        <td class="col-vendas-totais py-3 text-xs text-gray-700">2</td>
+                        <td class="col-vendas-ads py-3 text-xs text-gray-700">3</td>
+                        <td class="col-receita-ads py-3 text-xs text-gray-700">R$179,14</td>
+                        <td class="col-invest-ads py-3 text-xs text-gray-700">R$18,63</td>
+                        <td class="col-roas py-3 text-xs text-gray-700">9,62x</td>
+                        <td class="col-roas-obj py-3 text-xs text-gray-700">20</td>
+                        <td class="col-cvr py-3 text-xs text-gray-700">6,9%</td>
+                        <td class="col-ctr py-3 text-xs text-gray-700">0,29%</td>
+                        <td class="col-estoque py-3 text-xs text-gray-700">5</td>
+                        <td class="col-recomendacoes py-3 text-xs text-gray-700">Repor Estoque</td> 
+                    </tr>
+                    <tr>
+                        <td class="col-campanha py-3 text-xs text-gray-700">Campanha Lanternas</td>
+                        <td class="col-item-id py-3 text-xs text-gray-700">1912729924</td>
+                        <td class="col-titulo-item py-3 text-xs text-gray-700">Par Lanterna Tapa Sol Teto Volvo Fh Fm Nh Até 2009 8141013</td>
+                        <td class="col-vendas-totais py-3 text-xs text-gray-700">0</td>
+                        <td class="col-vendas-ads py-3 text-xs text-gray-700">1</td>
+                        <td class="col-receita-ads py-3 text-xs text-gray-700">-</td>
+                        <td class="col-invest-ads py-3 text-xs text-gray-700">R$0,11</td>
+                        <td class="col-roas py-3 text-xs text-gray-700">-</td>
+                        <td class="col-roas-obj py-3 text-xs text-gray-700">-</td>
+                        <td class="col-cvr py-3 text-xs text-gray-700">0,0%</td>
+                        <td class="col-ctr py-3 text-xs text-gray-700">0,40%</td>
+                        <td class="col-estoque py-3 text-xs text-gray-700">10</td>
+                        <td class="col-recomendacoes py-3 text-xs text-gray-700">Mover para Campanha Rentabilidade 01</td> 
+                    </tr>
+                    <tr>
+                        <td class="col-campanha py-3 text-xs text-gray-700">Campanha Lanternas</td>
+                        <td class="col-item-id py-3 text-xs text-gray-700">957379314</td>
+                        <td class="col-titulo-item py-3 text-xs text-gray-700">Par Da Lanterna Tapa Sol Volvo Fh 2009 Em Diante 82116545</td>
+                        <td class="col-vendas-totais py-3 text-xs text-gray-700">0</td>
+                        <td class="col-vendas-ads py-3 text-xs text-gray-700">0</td>
+                        <td class="col-receita-ads py-3 text-xs text-gray-700">-</td>
+                        <td class="col-invest-ads py-3 text-xs text-gray-700">R$0,15</td>
+                        <td class="col-roas py-3 text-xs text-gray-700">-</td>
+                        <td class="col-roas-obj py-3 text-xs text-gray-700">-</td>
+                        <td class="col-cvr py-3 text-xs text-gray-700">0,0%</td>
+                        <td class="col-ctr py-3 text-xs text-gray-700">0,10%</td>
+                        <td class="col-estoque py-3 text-xs text-gray-700">0</td>
+                        <td class="col-recomendacoes py-3 text-xs text-gray-700">Mover para Campanha Rentabilidade 01</td> 
+                    </tr>
+                    <tr>
+                        <td class="col-campanha py-3 text-xs text-gray-700">Campanha Rentabilidade 01</td>
+                        <td class="col-item-id py-3 text-xs text-gray-700">1413261556</td>
+                        <td class="col-titulo-item py-3 text-xs text-gray-700">Par Amortecedor Mola Gas Grade Volvo Fh 2003 Diante 20379348</td>
+                        <td class="col-vendas-totais py-3 text-xs text-gray-700">6</td>
+                        <td class="col-vendas-ads py-3 text-xs text-gray-700">0</td>
+                        <td class="col-receita-ads py-3 text-xs text-gray-700">R$938,56</td>
+                        <td class="col-invest-ads py-3 text-xs text-gray-700">R$21,28</td>
+                        <td class="col-roas py-3 text-xs text-gray-700">44,12x</td>
+                        <td class="col-roas-obj py-3 text-xs text-gray-700">7</td>
+                        <td class="col-cvr py-3 text-xs text-gray-700">35,3%</td>
+                        <td class="col-ctr py-3 text-xs text-gray-700">0,17%</td>
+                        <td class="col-estoque py-3 text-xs text-gray-700">6</td>
+                        <td class="col-recomendacoes py-3 text-xs text-gray-700">Repor Estoque</td> 
+                    </tr>
+                    <tr>
+                        <td class="col-campanha py-3 text-xs text-gray-700">Campanha Rentabilidade 01</td>
+                        <td class="col-item-id py-3 text-xs text-gray-700">1562180254</td>
+                        <td class="col-titulo-item py-3 text-xs text-gray-700">Chave De Seta Volvo Vm Todos Com Buzina 20870035</td>
+                        <td class="col-vendas-totais py-3 text-xs text-gray-700">2</td>
+                        <td class="col-vendas-ads py-3 text-xs text-gray-700">0</td>
+                        <td class="col-receita-ads py-3 text-xs text-gray-700">R$676,00</td>
+                        <td class="col-invest-ads py-3 text-xs text-gray-700">R$65,29</td>
+                        <td class="col-roas py-3 text-xs text-gray-700">10,35x</td>
+                        <td class="col-roas-obj py-3 text-xs text-gray-700">7</td>
+                        <td class="col-cvr py-3 text-xs text-gray-700">6,9%</td>
+                        <td class="col-ctr py-3 text-xs text-gray-700">0,29%</td>
+                        <td class="col-estoque py-3 text-xs text-gray-700">2</td>
+                        <td class="col-recomendacoes py-3 text-xs text-gray-700">Repor Estoque</td> 
+                    </tr>
+                    <tr>
+                        <td class="col-campanha py-3 text-xs text-gray-700">Campanha Rentabilidade 01</td>
+                        <td class="col-item-id py-3 text-xs text-gray-700">1231198345</td>
+                        <td class="col-titulo-item py-3 text-xs text-gray-700">Par Amortecedor Mola Gas Grade Volvo Fh 2003 Diante 20379348</td>
+                        <td class="col-vendas-totais py-3 text-xs text-gray-700">2</td>
+                        <td class="col-vendas-ads py-3 text-xs text-gray-700">0</td>
+                        <td class="col-receita-ads py-3 text-xs text-gray-700">R$201,35</td>
+                        <td class="col-invest-ads py-3 text-xs text-gray-700">R$46,24</td>
+                        <td class="col-roas py-3 text-xs text-gray-700">4,35x</td>
+                        <td class="col-roas-obj py-3 text-xs text-gray-700">7</td>
+                        <td class="col-cvr py-3 text-xs text-gray-700">5,7%</td>
+                        <td class="col-ctr py-3 text-xs text-gray-700">0,35%</td>
+                        <td class="col-estoque py-3 text-xs text-gray-700">2</td>
+                        <td class="col-recomendacoes py-3 text-xs text-gray-700">Remover anúncios</td> 
+                    </tr>
+                    <tr>
+                        <td class="col-campanha py-3 text-xs text-gray-700">Campanha Rentabilidade 01</td>
+                        <td class="col-item-id py-3 text-xs text-gray-700">2171469597</td>
+                        <td class="col-titulo-item py-3 text-xs text-gray-700">Par Amortecedor Mola Gas Grade Volvo Fh 2003 Diante 20379348</td>
+                        <td class="col-vendas-totais py-3 text-xs text-gray-700">0</td>
+                        <td class="col-vendas-ads py-3 text-xs text-gray-700">0</td>
+                        <td class="col-receita-ads py-3 text-xs text-gray-700">-</td>
+                        <td class="col-invest-ads py-3 text-xs text-gray-700">-</td>
+                        <td class="col-roas py-3 text-xs text-gray-700">-</td>
+                        <td class="col-roas-obj py-3 text-xs text-gray-700">-</td>
+                        <td class="col-cvr py-3 text-xs text-gray-700">-</td>
+                        <td class="col-ctr py-3 text-xs text-gray-700">-</td>
+                        <td class="col-estoque py-3 text-xs text-gray-700">0</td>
+                        <td class="col-recomendacoes py-3 text-xs text-gray-700">Remover anúncios</td> 
+                    </tr>
+                    <tr>
+                        <td class="col-campanha py-3 text-xs text-gray-700">Campanha Rentabilidade 02</td>
+                        <td class="col-item-id py-3 text-xs text-gray-700">956946167</td>
+                        <td class="col-titulo-item py-3 text-xs text-gray-700">Par Da Lanterna Seta Pisca Dianteira Mercedes Axor Le E Ld</td>
+                        <td class="col-vendas-totais py-3 text-xs text-gray-700">9</td>
+                        <td class="col-vendas-ads py-3 text-xs text-gray-700">0</td>
+                        <td class="col-receita-ads py-3 text-xs text-gray-700">R$1.106,92</td>
+                        <td class="col-invest-ads py-3 text-xs text-gray-700">R$144,45</td>
+                        <td class="col-roas py-3 text-xs text-gray-700">7,66x</td>
+                        <td class="col-roas-obj py-3 text-xs text-gray-700">7,69</td>
+                        <td class="col-cvr py-3 text-xs text-gray-700">17,0%</td>
+                        <td class="col-ctr py-3 text-xs text-gray-700">0,53%</td>
+                        <td class="col-estoque py-3 text-xs text-gray-700">9</td>
+                        <td class="col-recomendacoes py-3 text-xs text-gray-700">Repor Estoque</td> 
+                    </tr>
+                    <tr>
+                        <td class="col-campanha py-3 text-xs text-gray-700">Campanha Rentabilidade 02</td>
+                        <td class="col-item-id py-3 text-xs text-gray-700">3328250239</td>
+                        <td class="col-titulo-item py-3 text-xs text-gray-700">Válvula Niveladora Da Cabine Para Scania Série 4 / Pgr</td>
+                        <td class="col-vendas-totais py-3 text-xs text-gray-700">6</td>
+                        <td class="col-vendas-ads py-3 text-xs text-gray-700">1</td>
+                        <td class="col-receita-ads py-3 text-xs text-gray-700">R$707,33</td>
+                        <td class="col-invest-ads py-3 text-xs text-gray-700">R$110,41</td>
+                        <td class="col-roas py-3 text-xs text-gray-700">6,41x</td>
+                        <td class="col-roas-obj py-3 text-xs text-gray-700">7,69</td>
+                        <td class="col-cvr py-3 text-xs text-gray-700">9,0%</td>
+                        <td class="col-ctr py-3 text-xs text-gray-700">0,67%</td>
+                        <td class="col-estoque py-3 text-xs text-gray-700">7</td>
+                        <td class="col-recomendacoes py-3 text-xs text-gray-700">Repor Estoque</td> 
+                    </tr>
+                    <tr>
+                        <td class="col-campanha py-3 text-xs text-gray-700">Campanha Rentabilidade 02</td>
+                        <td class="col-item-id py-3 text-xs text-gray-700">1737976818</td>
+                        <td class="col-titulo-item py-3 text-xs text-gray-700">Amortecedor Bagageiro Ferramentas Scania Series Pgr 1761668</td>
+                        <td class="col-vendas-totais py-3 text-xs text-gray-700">2</td>
+                        <td class="col-vendas-ads py-3 text-xs text-gray-700">0</td>
+                        <td class="col-receita-ads py-3 text-xs text-gray-700">R$146,16</td>
+                        <td class="col-invest-ads py-3 text-xs text-gray-700">R$0,88</td>
+                        <td class="col-roas py-3 text-xs text-gray-700">166,09x</td>
+                        <td class="col-roas-obj py-3 text-xs text-gray-700">7,69</td>
+                        <td class="col-cvr py-3 text-xs text-gray-700">100,0%</td>
+                        <td class="col-ctr py-3 text-xs text-gray-700">0,20%</td>
+                        <td class="col-estoque py-3 text-xs text-gray-700">2</td>
+                        <td class="col-recomendacoes py-3 text-xs text-gray-700">Repor Estoque</td> 
+                    </tr>
+                    <tr>
+                        <td class="col-campanha py-3 text-xs text-gray-700">Campanha Rentabilidade 02</td>
+                        <td class="col-item-id py-3 text-xs text-gray-700">3311379043</td>
+                        <td class="col-titulo-item py-3 text-xs text-gray-700">Letreiro Frontal Scania Série 4 Cabine R /t Até 2007 1357259</td>
+                        <td class="col-vendas-totais py-3 text-xs text-gray-700">5</td>
+                        <td class="col-vendas-ads py-3 text-xs text-gray-700">2</td>
+                        <td class="col-receita-ads py-3 text-xs text-gray-700">R$354,50</td>
+                        <td class="col-invest-ads py-3 text-xs text-gray-700">R$30,59</td>
+                        <td class="col-roas py-3 text-xs text-gray-700">11,59x</td>
+                        <td class="col-roas-obj py-3 text-xs text-gray-700">7,69</td>
+                        <td class="col-cvr py-3 text-xs text-gray-700">13,5%</td>
+                        <td class="col-ctr py-3 text-xs text-gray-700">0,37%</td>
+                        <td class="col-estoque py-3 text-xs text-gray-700">7</td>
+                        <td class="col-recomendacoes py-3 text-xs text-gray-700">Mover para Controle de ACOS</td> 
+                    </tr>
+                    <tr>
+                        <td class="col-campanha py-3 text-xs text-gray-700">Campanha Rentabilidade 02</td>
+                        <td class="col-item-id py-3 text-xs text-gray-700">3359110279</td>
+                        <td class="col-titulo-item py-3 text-xs text-gray-700">Par Palheta Limpador Com Esguicho Para Master Iveco Volvo Vm Preto</td>
+                        <td class="col-vendas-totais py-3 text-xs text-gray-700">0</td>
+                        <td class="col-vendas-ads py-3 text-xs text-gray-700">2</td>
+                        <td class="col-receita-ads py-3 text-xs text-gray-700">-</td>
+                        <td class="col-invest-ads py-3 text-xs text-gray-700">R$3,21</td>
+                        <td class="col-roas py-3 text-xs text-gray-700">0,00x</td>
+                        <td class="col-roas-obj py-3 text-xs text-gray-700">-</td>
+                        <td class="col-cvr py-3 text-xs text-gray-700">0,0%</td>
+                        <td class="col-ctr py-3 text-xs text-gray-700">0,20%</td>
+                        <td class="col-estoque py-3 text-xs text-gray-700">2</td>
+                        <td class="col-recomendacoes py-3 text-xs text-gray-700">Mover para Controle de ACOS</td> 
+                    </tr>
+                    <tr>
+                        <td class="col-campanha py-3 text-xs text-gray-700">Campanha Rentabilidade 02</td>
+                        <td class="col-item-id py-3 text-xs text-gray-700">3311379137</td>
+                        <td class="col-titulo-item py-3 text-xs text-gray-700">Letreiro Frontal Scania Série 4 Cabine R /t Até 2007 1357259</td>
+                        <td class="col-vendas-totais py-3 text-xs text-gray-700">0</td>
+                        <td class="col-vendas-ads py-3 text-xs text-gray-700">1</td>
+                        <td class="col-receita-ads py-3 text-xs text-gray-700">-</td>
+                        <td class="col-invest-ads py-3 text-xs text-gray-700">R$0,71</td>
+                        <td class="col-roas py-3 text-xs text-gray-700">0,00x</td>
+                        <td class="col-roas-obj py-3 text-xs text-gray-700">-</td>
+                        <td class="col-cvr py-3 text-xs text-gray-700">0,0%</td>
+                        <td class="col-ctr py-3 text-xs text-gray-700">0,10%</td>
+                        <td class="col-estoque py-3 text-xs text-gray-700">1</td>
+                        <td class="col-recomendacoes py-3 text-xs text-gray-700">Mover para Controle de ACOS</td> 
+                    </tr>
+                    <tr>
+                        <td class="col-campanha py-3 text-xs text-gray-700">Campanha Rentabilidade 02</td>
+                        <td class="col-item-id py-3 text-xs text-gray-700">3692478260</td>
+                        <td class="col-titulo-item py-3 text-xs text-gray-700">Chave De Seta Para Volkswagen Constellation Todos 2r2953513</td>
+                        <td class="col-vendas-totais py-3 text-xs text-gray-700">0</td>
+                        <td class="col-vendas-ads py-3 text-xs text-gray-700">0</td>
+                        <td class="col-receita-ads py-3 text-xs text-gray-700">-</td>
+                        <td class="col-invest-ads py-3 text-xs text-gray-700">R$74,64</td>
+                        <td class="col-roas py-3 text-xs text-gray-700">0,00x</td>
+                        <td class="col-roas-obj py-3 text-xs text-gray-700">-</td>
+                        <td class="col-cvr py-3 text-xs text-gray-700">0,0%</td>
+                        <td class="col-ctr py-3 text-xs text-gray-700">0,45%</td>
+                        <td class="col-estoque py-3 text-xs text-gray-700">0</td>
+                        <td class="col-recomendacoes py-3 text-xs text-gray-700">Mover para Controle de ACOS</td> 
+                    </tr>
+                    <tr>
+                        <td class="col-campanha py-3 text-xs text-gray-700">Campanha Rentabilidade 02</td>
+                        <td class="col-item-id py-3 text-xs text-gray-700">5266147784</td>
+                        <td class="col-titulo-item py-3 text-xs text-gray-700">Chave De Seta Para Volkswagen Constellation Todos 2r2953513</td>
+                        <td class="col-vendas-totais py-3 text-xs text-gray-700">0</td>
+                        <td class="col-vendas-ads py-3 text-xs text-gray-700">0</td>
+                        <td class="col-receita-ads py-3 text-xs text-gray-700">-</td>
+                        <td class="col-invest-ads py-3 text-xs text-gray-700">R$2,03</td>
+                        <td class="col-roas py-3 text-xs text-gray-700">0,00x</td>
+                        <td class="col-roas-obj py-3 text-xs text-gray-700">-</td>
+                        <td class="col-cvr py-3 text-xs text-gray-700">0,0%</td>
+                        <td class="col-ctr py-3 text-xs text-gray-700">0,2%</td>
+                        <td class="col-estoque py-3 text-xs text-gray-700">0</td>
+                        <td class="col-recomendacoes py-3 text-xs text-gray-700">Mover para Controle de ACOS</td> 
+                    </tr>
+                    <tr>
+                        <td class="col-campanha py-3 text-xs text-gray-700">Campanha Rentabilidade 03</td>
+                        <td class="col-item-id py-3 text-xs text-gray-700">3831960475</td>
+                        <td class="col-titulo-item py-3 text-xs text-gray-700">Par Farol Auxiliar Milha Compativel Scania Série 4 1998-2007</td>
+                        <td class="col-vendas-totais py-3 text-xs text-gray-700">7</td>
+                        <td class="col-vendas-ads py-3 text-xs text-gray-700">0</td>
+                        <td class="col-receita-ads py-3 text-xs text-gray-700">R$1.734,83</td>
+                        <td class="col-invest-ads py-3 text-xs text-gray-700">R$64,90</td>
+                        <td class="col-roas py-3 text-xs text-gray-700">26,73x</td>
+                        <td class="col-roas-obj py-3 text-xs text-gray-700">10</td>
+                        <td class="col-cvr py-3 text-xs text-gray-700">13,7%</td>
+                        <td class="col-ctr py-3 text-xs text-gray-700">0,51%</td>
+                        <td class="col-estoque py-3 text-xs text-gray-700">7</td>
+                        <td class="col-recomendacoes py-3 text-xs text-gray-700">Repor Estoque</td> 
+                    </tr>
+                    <tr>
+                        <td class="col-campanha py-3 text-xs text-gray-700">Campanha Rentabilidade 03</td>
+                        <td class="col-item-id py-3 text-xs text-gray-700">4879178492</td>
+                        <td class="col-titulo-item py-3 text-xs text-gray-700">Conjunto Trava Ignição C/ Chaves Volvo Vm 20718077 21427735</td>
+                        <td class="col-vendas-totais py-3 text-xs text-gray-700">0</td>
+                        <td class="col-vendas-ads py-3 text-xs text-gray-700">1</td>
+                        <td class="col-receita-ads py-3 text-xs text-gray-700">-</td>
+                        <td class="col-invest-ads py-3 text-xs text-gray-700">R$1,03</td>
+                        <td class="col-roas py-3 text-xs text-gray-700">-</td>
+                        <td class="col-roas-obj py-3 text-xs text-gray-700">-</td>
+                        <td class="col-cvr py-3 text-xs text-gray-700">0,0%</td>
+                        <td class="col-ctr py-3 text-xs text-gray-700">0,8%</td>
+                        <td class="col-estoque py-3 text-xs text-gray-700">1</td>
+                        <td class="col-recomendacoes py-3 text-xs text-gray-700">Mover para Controle de ACOS</td> 
+                    </tr>
+                    <tr>
+                        <td class="col-campanha py-3 text-xs text-gray-700">Campanha Rentabilidade 03</td>
+                        <td class="col-item-id py-3 text-xs text-gray-700">1204961475</td>
+                        <td class="col-titulo-item py-3 text-xs text-gray-700">Par Do Paralama Cabine Traseiro Mercedes Axor 1933/2831</td>
+                        <td class="col-vendas-totais py-3 text-xs text-gray-700">1</td>
+                        <td class="col-vendas-ads py-3 text-xs text-gray-700">1</td>
+                        <td class="col-receita-ads py-3 text-xs text-gray-700">R$990,63</td>
+                        <td class="col-invest-ads py-3 text-xs text-gray-700">R$180,87</td>
+                        <td class="col-roas py-3 text-xs text-gray-700">5,48x</td>
+                        <td class="col-roas-obj py-3 text-xs text-gray-700">10</td>
+                        <td class="col-cvr py-3 text-xs text-gray-700">2,4%</td>
+                        <td class="col-ctr py-3 text-xs text-gray-700">0,41%</td>
+                        <td class="col-estoque py-3 text-xs text-gray-700">2</td>
+                        <td class="col-recomendacoes py-3 text-xs text-gray-700">Mover para Controle de ACOS</td> 
+                    </tr>
+                    <tr>
+                        <td class="col-campanha py-3 text-xs text-gray-700">Campanha Retrovisores</td>
+                        <td class="col-item-id py-3 text-xs text-gray-700">3291413127</td>
+                        <td class="col-titulo-item py-3 text-xs text-gray-700">Par Espelho Auxiliar Retrovisor Para Mercedes Axor / Atego</td>
+                        <td class="col-vendas-totais py-3 text-xs text-gray-700">7</td>
+                        <td class="col-vendas-ads py-3 text-xs text-gray-700">0</td>
+                        <td class="col-receita-ads py-3 text-xs text-gray-700">R$2.163,20</td>
+                        <td class="col-invest-ads py-3 text-xs text-gray-700">R$248,41</td>
+                        <td class="col-roas py-3 text-xs text-gray-700">8,71x</td>
+                        <td class="col-roas-obj py-3 text-xs text-gray-700">7,14</td>
+                        <td class="col-cvr py-3 text-xs text-gray-700">8,1%</td>
+                        <td class="col-ctr py-3 text-xs text-gray-700">0,86%</td>
+                        <td class="col-estoque py-3 text-xs text-gray-700">7</td>
+                        <td class="col-recomendacoes py-3 text-xs text-gray-700">Mover para Controle de ACOS</td> 
+                    </tr>
+                    <tr>
+                        <td class="col-campanha py-3 text-xs text-gray-700">Campanha Retrovisores</td>
+                        <td class="col-item-id py-3 text-xs text-gray-700">3826443279</td>
+                        <td class="col-titulo-item py-3 text-xs text-gray-700">Espelho Retrovisor Rampa Mb Axor / Atego/actros - 9418101016</td>
+                        <td class="col-vendas-totais py-3 text-xs text-gray-700">10</td>
+                        <td class="col-vendas-ads py-3 text-xs text-gray-700">3</td>
+                        <td class="col-receita-ads py-3 text-xs text-gray-700">R$850,89</td>
+                        <td class="col-invest-ads py-3 text-xs text-gray-700">R$118,02</td>
+                        <td class="col-roas py-3 text-xs text-gray-700">7,21x</td>
+                        <td class="col-roas-obj py-3 text-xs text-gray-700">7,14</td>
+                        <td class="col-cvr py-3 text-xs text-gray-700">12,7%</td>
+                        <td class="col-ctr py-3 text-xs text-gray-700">0,79%</td>
+                        <td class="col-estoque py-3 text-xs text-gray-700">13</td>
+                        <td class="col-recomendacoes py-3 text-xs text-gray-700">Mover para Controle de ACOS e promocionar itens</td> 
+                    </tr>
+                    <tr>
+                        <td class="col-campanha py-3 text-xs text-gray-700">Campanha Retrovisores</td>
+                        <td class="col-item-id py-3 text-xs text-gray-700">3491834990</td>
+                        <td class="col-titulo-item py-3 text-xs text-gray-700">Espelho Auxiliar Do Retrovisor Para Mercedes Axor / Atego</td>
+                        <td class="col-vendas-totais py-3 text-xs text-gray-700">6</td>
+                        <td class="col-vendas-ads py-3 text-xs text-gray-700">0</td>
+                        <td class="col-receita-ads py-3 text-xs text-gray-700">R$435,31</td>
+                        <td class="col-invest-ads py-3 text-xs text-gray-700">R$53,24</td>
+                        <td class="col-roas py-3 text-xs text-gray-700">8,18x</td>
+                        <td class="col-roas-obj py-3 text-xs text-gray-700">7,14</td>
+                        <td class="col-cvr py-3 text-xs text-gray-700">17,1%</td>
+                        <td class="col-ctr py-3 text-xs text-gray-700">0,35%</td>
+                        <td class="col-estoque py-3 text-xs text-gray-700">6</td>
+                        <td class="col-recomendacoes py-3 text-xs text-gray-700">Mover para Controle de ACOS e promocionar itens</td> 
+                    </tr>
+                    <tr>
+                        <td class="col-campanha py-3 text-xs text-gray-700">Campanha Retrovisores</td>
+                        <td class="col-item-id py-3 text-xs text-gray-700">1300602526</td>
+                        <td class="col-titulo-item py-3 text-xs text-gray-700">Retrovisor S/braço Mb Axor / Atego  S/desembalçador Ld</td>
+                        <td class="col-vendas-totais py-3 text-xs text-gray-700">2</td>
+                        <td class="col-vendas-ads py-3 text-xs text-gray-700">0</td>
+                        <td class="col-receita-ads py-3 text-xs text-gray-700">R$438,00</td>
+                        <td class="col-invest-ads py-3 text-xs text-gray-700">R$68,85</td>
+                        <td class="col-roas py-3 text-xs text-gray-700">6,36x</td>
+                        <td class="col-roas-obj py-3 text-xs text-gray-700">7,14</td>
+                        <td class="col-cvr py-3 text-xs text-gray-700">7,1%</td>
+                        <td class="col-ctr py-3 text-xs text-gray-700">0,28%</td>
+                        <td class="col-estoque py-3 text-xs text-gray-700">2</td>
+                        <td class="col-recomendacoes py-3 text-xs text-gray-700">Mover para Controle de ACOS e promocionar itens</td> 
+                    </tr>
+                    <tr>
+                        <td class="col-campanha py-3 text-xs text-gray-700">Campanha Scania</td>
+                        <td class="col-item-id py-3 text-xs text-gray-700">3174649629</td>
+                        <td class="col-titulo-item py-3 text-xs text-gray-700">Maçaneta Da Porta Cabine Para Scania Série 4 / Séries Pgr</td>
+                        <td class="col-vendas-totais py-3 text-xs text-gray-700">14</td>
+                        <td class="col-vendas-ads py-3 text-xs text-gray-700">0</td>
+                        <td class="col-receita-ads py-3 text-xs text-gray-700">R$1.830,57</td>
+                        <td class="col-invest-ads py-3 text-xs text-gray-700">R$105,11</td>
+                        <td class="col-roas py-3 text-xs text-gray-700">17,42x</td>
+                        <td class="col-roas-obj py-3 text-xs text-gray-700">7,14</td>
+                        <td class="col-cvr py-3 text-xs text-gray-700">14,9%</td>
+                        <td class="col-ctr py-3 text-xs text-gray-700">0,94%</td>
+                        <td class="col-estoque py-3 text-xs text-gray-700">14</td>
+                        <td class="col-recomendacoes py-3 text-xs text-gray-700">Repor Estoque</td> 
+                    </tr>
+                    <tr>
+                        <td class="col-campanha py-3 text-xs text-gray-700">Campanha Scania</td>
+                        <td class="col-item-id py-3 text-xs text-gray-700">3721174049</td>
+                        <td class="col-titulo-item py-3 text-xs text-gray-700">Lente Do Farol Dianteiro Para Scania Pgr De 2012 A 2018</td>
+                        <td class="col-vendas-totais py-3 text-xs text-gray-700">5</td>
+                        <td class="col-vendas-ads py-3 text-xs text-gray-700">0</td>
+                        <td class="col-receita-ads py-3 text-xs text-gray-700">R$505,30</td>
+                        <td class="col-invest-ads py-3 text-xs text-gray-700">R$27,90</td>
+                        <td class="col-roas py-3 text-xs text-gray-700">18,11x</td>
+                        <td class="col-roas-obj py-3 text-xs text-gray-700">7,14</td>
+                        <td class="col-cvr py-3 text-xs text-gray-700">17,9%</td>
+                        <td class="col-ctr py-3 text-xs text-gray-700">0,28%</td>
+                        <td class="col-estoque py-3 text-xs text-gray-700">5</td>
+                        <td class="col-recomendacoes py-3 text-xs text-gray-700">Repor Estoque</td> 
+                    </tr>
+                    <tr>
+                        <td class="col-campanha py-3 text-xs text-gray-700">Campanha Scania</td>
+                        <td class="col-item-id py-3 text-xs text-gray-700">3392772629</td>
+                        <td class="col-titulo-item py-3 text-xs text-gray-700">Par Presilha Da Tampa Bateria Compativel Scania Serie 4 Pgr</td>
+                        <td class="col-vendas-totais py-3 text-xs text-gray-700">5</td>
+                        <td class="col-vendas-ads py-3 text-xs text-gray-700">2</td>
+                        <td class="col-receita-ads py-3 text-xs text-gray-700">R$78,70</td>
+                        <td class="col-invest-ads py-3 text-xs text-gray-700">R$7,39</td>
+                        <td class="col-roas py-3 text-xs text-gray-700">10,64x</td>
+                        <td class="col-roas-obj py-3 text-xs text-gray-700">7,14</td>
+                        <td class="col-cvr py-3 text-xs text-gray-700">27,8%</td>
+                        <td class="col-ctr py-3 text-xs text-gray-700">0,18%</td>
+                        <td class="col-estoque py-3 text-xs text-gray-700">7</td>
+                        <td class="col-recomendacoes py-3 text-xs text-gray-700">Repor Estoque</td> 
+                    </tr>
+                    <tr>
+                        <td class="col-campanha py-3 text-xs text-gray-700">Campanha Scania</td>
+                        <td class="col-item-id py-3 text-xs text-gray-700">1402593304</td>
+                        <td class="col-titulo-item py-3 text-xs text-gray-700">Jogo Junta Radiador Oleo Scania Serie 4 / Séries Pgr 2096560</td>
+                        <td class="col-vendas-totais py-3 text-xs text-gray-700">0</td>
+                        <td class="col-vendas-ads py-3 text-xs text-gray-700">0</td>
+                        <td class="col-receita-ads py-3 text-xs text-gray-700">R$0,00</td>
+                        <td class="col-invest-ads py-3 text-xs text-gray-700">R$13,68</td>
+                        <td class="col-roas py-3 text-xs text-gray-700">0,00x</td>
+                        <td class="col-roas-obj py-3 text-xs text-gray-700">-</td>
+                        <td class="col-cvr py-3 text-xs text-gray-700">0,0%</td>
+                        <td class="col-ctr py-3 text-xs text-gray-700">0,21%</td>
+                        <td class="col-estoque py-3 text-xs text-gray-700">0</td>
+                        <td class="col-recomendacoes py-3 text-xs text-gray-700">Mover para Controle de ACOS</td> 
+                    </tr>
+                    <tr>
+                        <td class="col-campanha py-3 text-xs text-gray-700">Campanha Scania</td>
+                        <td class="col-item-id py-3 text-xs text-gray-700">3666189360</td>
+                        <td class="col-titulo-item py-3 text-xs text-gray-700">Válvula Solenoide Transferencia Scania Série 4 / Pgr 1488083</td>
+                        <td class="col-vendas-totais py-3 text-xs text-gray-700">3</td>
+                        <td class="col-vendas-ads py-3 text-xs text-gray-700">1</td>
+                        <td class="col-receita-ads py-3 text-xs text-gray-700">R$474,07</td>
+                        <td class="col-invest-ads py-3 text-xs text-gray-700">R$117,93</td>
+                        <td class="col-roas py-3 text-xs text-gray-700">4,02x</td>
+                        <td class="col-roas-obj py-3 text-xs text-gray-700">7,14</td>
+                        <td class="col-cvr py-3 text-xs text-gray-700">4,1%</td>
+                        <td class="col-ctr py-3 text-xs text-gray-700">0,74%</td>
+                        <td class="col-estoque py-3 text-xs text-gray-700">4</td>
+                        <td class="col-recomendacoes py-3 text-xs text-gray-700">Mover para Controle de ACOS e promocionar itens</td> 
+                    </tr>
+                    <tr>
+                        <td class="col-campanha py-3 text-xs text-gray-700">Campanha Scania</td>
+                        <td class="col-item-id py-3 text-xs text-gray-700">3328145183</td>
+                        <td class="col-titulo-item py-3 text-xs text-gray-700">Válvula Solenoide Transferencia Scania Série 4 / Pgr 1488083</td>
+                        <td class="col-vendas-totais py-3 text-xs text-gray-700">0</td>
+                        <td class="col-vendas-ads py-3 text-xs text-gray-700">2</td>
+                        <td class="col-receita-ads py-3 text-xs text-gray-700">-</td>
+                        <td class="col-invest-ads py-3 text-xs text-gray-700">R$20,90</td>
+                        <td class="col-roas py-3 text-xs text-gray-700">-</td>
+                        <td class="col-roas-obj py-3 text-xs text-gray-700">-</td>
+                        <td class="col-cvr py-3 text-xs text-gray-700">0,0%</td>
+                        <td class="col-ctr py-3 text-xs text-gray-700">0,27%</td>
+                        <td class="col-estoque py-3 text-xs text-gray-700">2</td>
+                        <td class="col-recomendacoes py-3 text-xs text-gray-700">Mover para Controle de ACOS e promocionar itens</td> 
+                    </tr>
+                    <tr>
+                        <td class="col-campanha py-3 text-xs text-gray-700">Campanha Scania</td>
+                        <td class="col-item-id py-3 text-xs text-gray-700">2966232626</td>
+                        <td class="col-titulo-item py-3 text-xs text-gray-700">Gatilho Puxador Da Grade Frontal Scania Series Pgr 1767631</td>
+                        <td class="col-vendas-totais py-3 text-xs text-gray-700">0</td>
+                        <td class="col-vendas-ads py-3 text-xs text-gray-700">0</td>
+                        <td class="col-receita-ads py-3 text-xs text-gray-700">-</td>
+                        <td class="col-invest-ads py-3 text-xs text-gray-700">R$0,00</td>
+                        <td class="col-roas py-3 text-xs text-gray-700">-</td>
+                        <td class="col-roas-obj py-3 text-xs text-gray-700">-</td>
+                        <td class="col-cvr py-3 text-xs text-gray-700">-</td>
+                        <td class="col-ctr py-3 text-xs text-gray-700">0</td>
+                        <td class="col-estoque py-3 text-xs text-gray-700">0</td>
+                        <td class="col-recomendacoes py-3 text-xs text-gray-700">Mover para Controle de ACOS e promocionar itens</td> 
+                    </tr>
+                    <tr>
+                        <td class="col-campanha py-3 text-xs text-gray-700">Campanha Scania</td>
+                        <td class="col-item-id py-3 text-xs text-gray-700">2966238956</td>
+                        <td class="col-titulo-item py-3 text-xs text-gray-700">Gatilho Puxador Da Grade Frontal Scania Series Pgr 1767631</td>
+                        <td class="col-vendas-totais py-3 text-xs text-gray-700">0</td>
+                        <td class="col-vendas-ads py-3 text-xs text-gray-700">0</td>
+                        <td class="col-receita-ads py-3 text-xs text-gray-700">-</td>
+                        <td class="col-invest-ads py-3 text-xs text-gray-700">R$27,94</td>
+                        <td class="col-roas py-3 text-xs text-gray-700">-</td>
+                        <td class="col-roas-obj py-3 text-xs text-gray-700">-</td>
+                        <td class="col-cvr py-3 text-xs text-gray-700">0,0%</td>
+                        <td class="col-ctr py-3 text-xs text-gray-700">0,10%</td>
+                        <td class="col-estoque py-3 text-xs text-gray-700">0</td>
+                        <td class="col-recomendacoes py-3 text-xs text-gray-700">Mover para Controle de ACOS e promocionar itens</td> 
+                    </tr>
+                    <tr>
+                        <td class="col-campanha py-3 text-xs text-gray-700">Campanha sugerida Junho</td>
+                        <td class="col-item-id py-3 text-xs text-gray-700">3683576136</td>
+                        <td class="col-titulo-item py-3 text-xs text-gray-700">Chave De Seta Volvo Fh / Fm 2004-2014 C/ Piloto Automatico</td>
+                        <td class="col-vendas-totais py-3 text-xs text-gray-700">2</td>
+                        <td class="col-vendas-ads py-3 text-xs text-gray-700">4</td>
+                        <td class="col-receita-ads py-3 text-xs text-gray-700">R$519,80</td>
+                        <td class="col-invest-ads py-3 text-xs text-gray-700">R$102,17</td>
+                        <td class="col-roas py-3 text-xs text-gray-700">5,09x</td>
+                        <td class="col-roas-obj py-3 text-xs text-gray-700">8,33</td>
+                        <td class="col-cvr py-3 text-xs text-gray-700">3,2%</td>
+                        <td class="col-ctr py-3 text-xs text-gray-700">0,62%</td>
+                        <td class="col-estoque py-3 text-xs text-gray-700">6</td>
+                        <td class="col-recomendacoes py-3 text-xs text-gray-700">Mover para Controle de ACOS</td> 
+                    </tr>
+                    <tr>
+                        <td class="col-campanha py-3 text-xs text-gray-700">Campanha sugerida Junho</td>
+                        <td class="col-item-id py-3 text-xs text-gray-700">3683587604</td>
+                        <td class="col-titulo-item py-3 text-xs text-gray-700">Chave De Seta Volvo Fh / Fm 2004-2014 C/ Piloto Automatico</td>
+                        <td class="col-vendas-totais py-3 text-xs text-gray-700">0</td>
+                        <td class="col-vendas-ads py-3 text-xs text-gray-700">1</td>
+                        <td class="col-receita-ads py-3 text-xs text-gray-700">-</td>
+                        <td class="col-invest-ads py-3 text-xs text-gray-700">R$4,51</td>
+                        <td class="col-roas py-3 text-xs text-gray-700">-</td>
+                        <td class="col-roas-obj py-3 text-xs text-gray-700">-</td>
+                        <td class="col-cvr py-3 text-xs text-gray-700">0,0%</td>
+                        <td class="col-ctr py-3 text-xs text-gray-700">0,40%</td>
+                        <td class="col-estoque py-3 text-xs text-gray-700">1</td>
+                        <td class="col-recomendacoes py-3 text-xs text-gray-700">Mover para Controle de ACOS</td> 
+                    </tr>
+                    <tr>
+                        <td class="col-campanha py-3 text-xs text-gray-700">Campanha sugerida Junho</td>
+                        <td class="col-item-id py-3 text-xs text-gray-700">4674638242</td>
+                        <td class="col-titulo-item py-3 text-xs text-gray-700">Válvula Morcego Banco Isri Para Volvo Fh /fm/ Fmx - 20748450</td>
+                        <td class="col-vendas-totais py-3 text-xs text-gray-700">0</td>
+                        <td class="col-vendas-ads py-3 text-xs text-gray-700">1</td>
+                        <td class="col-receita-ads py-3 text-xs text-gray-700">-</td>
+                        <td class="col-invest-ads py-3 text-xs text-gray-700">R$13,25</td>
+                        <td class="col-roas py-3 text-xs text-gray-700">-</td>
+                        <td class="col-roas-obj py-3 text-xs text-gray-700">-</td>
+                        <td class="col-cvr py-3 text-xs text-gray-700">0,0%</td>
+                        <td class="col-ctr py-3 text-xs text-gray-700">0,15%</td>
+                        <td class="col-estoque py-3 text-xs text-gray-700">1</td>
+                        <td class="col-recomendacoes py-3 text-xs text-gray-700">Mover para Controle de ACOS</td> 
+                    </tr>
+                    <tr>
+                        <td class="col-campanha py-3 text-xs text-gray-700">Campanha sugerida Junho</td>
+                        <td class="col-item-id py-3 text-xs text-gray-700">3307573563</td>
+                        <td class="col-titulo-item py-3 text-xs text-gray-700">Par Lanterna Traseira Vw Constellation / Ford Cargo Moderno Esquerdo Vermelho</td>
+                        <td class="col-vendas-totais py-3 text-xs text-gray-700">0</td>
+                        <td class="col-vendas-ads py-3 text-xs text-gray-700">0</td>
+                        <td class="col-receita-ads py-3 text-xs text-gray-700">-</td>
+                        <td class="col-invest-ads py-3 text-xs text-gray-700">R$2,51</td>
+                        <td class="col-roas py-3 text-xs text-gray-700">-</td>
+                        <td class="col-roas-obj py-3 text-xs text-gray-700">-</td>
+                        <td class="col-cvr py-3 text-xs text-gray-700">0,0%</td>
+                        <td class="col-ctr py-3 text-xs text-gray-700">0,30%</td>
+                        <td class="col-estoque py-3 text-xs text-gray-700">0</td>
+                        <td class="col-recomendacoes py-3 text-xs text-gray-700">Mover para Controle de ACOS</td> 
+                    </tr>
+                    <tr>
+                        <td class="col-campanha py-3 text-xs text-gray-700">Controle de ACOS</td>
+                        <td class="col-item-id py-3 text-xs text-gray-700">1593936617</td>
+                        <td class="col-titulo-item py-3 text-xs text-gray-700">Kit 6 Terminais Da Alvanca Da Caixa De Cambio Mercedes Axor</td>
+                        <td class="col-vendas-totais py-3 text-xs text-gray-700">0</td>
+                        <td class="col-vendas-ads py-3 text-xs text-gray-700">0</td>
+                        <td class="col-receita-ads py-3 text-xs text-gray-700">-</td>
+                        <td class="col-invest-ads py-3 text-xs text-gray-700">R$30,54</td>
+                        <td class="col-roas py-3 text-xs text-gray-700">-</td>
+                        <td class="col-roas-obj py-3 text-xs text-gray-700">-</td>
+                        <td class="col-cvr py-3 text-xs text-gray-700">0,0%</td>
+                        <td class="col-ctr py-3 text-xs text-gray-700">0,26%</td>
+                        <td class="col-estoque py-3 text-xs text-gray-700">0</td>
+                        <td class="col-recomendacoes py-3 text-xs text-gray-700">Mover para Controle de ACOS e promocionar itens</td> 
+                    </tr>
+                    <tr>
+                        <td class="col-campanha py-3 text-xs text-gray-700">Controle de ACOS</td>
+                        <td class="col-item-id py-3 text-xs text-gray-700">2062453437</td>
+                        <td class="col-titulo-item py-3 text-xs text-gray-700">Kit 6 Terminais Da Alvanca Da Caixa De Cambio Mercedes Axor</td>
+                        <td class="col-vendas-totais py-3 text-xs text-gray-700">0</td>
+                        <td class="col-vendas-ads py-3 text-xs text-gray-700">0</td>
+                        <td class="col-receita-ads py-3 text-xs text-gray-700">-</td>
+                        <td class="col-invest-ads py-3 text-xs text-gray-700">R$0,00</td>
+                        <td class="col-roas py-3 text-xs text-gray-700">-</td>
+                        <td class="col-roas-obj py-3 text-xs text-gray-700">-</td>
+                        <td class="col-cvr py-3 text-xs text-gray-700">-</td>
+                        <td class="col-ctr py-3 text-xs text-gray-700">0</td>
+                        <td class="col-estoque py-3 text-xs text-gray-700">0</td>
+                        <td class="col-recomendacoes py-3 text-xs text-gray-700">Remover anúncios</td> 
+                    </tr>
+                    <tr>
+                        <td class="col-campanha py-3 text-xs text-gray-700">Controle de ACOS</td>
+                        <td class="col-item-id py-3 text-xs text-gray-700">1991135640</td>
+                        <td class="col-titulo-item py-3 text-xs text-gray-700">Kit 6 Terminais Da Alvanca Da Caixa De Cambio Mercedes Axor</td>
+                        <td class="col-vendas-totais py-3 text-xs text-gray-700">0</td>
+                        <td class="col-vendas-ads py-3 text-xs text-gray-700">0</td>
+                        <td class="col-receita-ads py-3 text-xs text-gray-700">-</td>
+                        <td class="col-invest-ads py-3 text-xs text-gray-700">R$12,41</td>
+                        <td class="col-roas py-3 text-xs text-gray-700">-</td>
+                        <td class="col-roas-obj py-3 text-xs text-gray-700">-</td>
+                        <td class="col-cvr py-3 text-xs text-gray-700">0,0%</td>
+                        <td class="col-ctr py-3 text-xs text-gray-700">0,90%</td>
+                        <td class="col-estoque py-3 text-xs text-gray-700">0</td>
+                        <td class="col-recomendacoes py-3 text-xs text-gray-700">Remover anúncios</td> 
+                    </tr>
+                    <tr>
+                        <td class="col-campanha py-3 text-xs text-gray-700">Controle de ACOS</td>
+                        <td class="col-item-id py-3 text-xs text-gray-700">3866929245</td>
+                        <td class="col-titulo-item py-3 text-xs text-gray-700">Válvula Maneco Freio Mão Scania Série 113 143 -3 Saidas 14mm</td>
+                        <td class="col-vendas-totais py-3 text-xs text-gray-700">0</td>
+                        <td class="col-vendas-ads py-3 text-xs text-gray-700">2</td>
+                        <td class="col-receita-ads py-3 text-xs text-gray-700">-</td>
+                        <td class="col-invest-ads py-3 text-xs text-gray-700">R$9,76</td>
+                        <td class="col-roas py-3 text-xs text-gray-700">-</td>
+                        <td class="col-roas-obj py-3 text-xs text-gray-700">-</td>
+                        <td class="col-cvr py-3 text-xs text-gray-700">0,0%</td>
+                        <td class="col-ctr py-3 text-xs text-gray-700">0,20%</td>
+                        <td class="col-estoque py-3 text-xs text-gray-700">2</td>
+                        <td class="col-recomendacoes py-3 text-xs text-gray-700">Remover anúncios</td> 
+                    </tr>
+                    <tr>
+                        <td class="col-campanha py-3 text-xs text-gray-700">Controle de ACOS</td>
+                        <td class="col-item-id py-3 text-xs text-gray-700">3866967697</td>
+                        <td class="col-titulo-item py-3 text-xs text-gray-700">Válvula Maneco Freio Mão Scania Série 113 143 -3 Saidas 14mm</td>
+                        <td class="col-vendas-totais py-3 text-xs text-gray-700">0</td>
+                        <td class="col-vendas-ads py-3 text-xs text-gray-700">0</td>
+                        <td class="col-receita-ads py-3 text-xs text-gray-700">-</td>
+                        <td class="col-invest-ads py-3 text-xs text-gray-700">R$2,32</td>
+                        <td class="col-roas py-3 text-xs text-gray-700">-</td>
+                        <td class="col-roas-obj py-3 text-xs text-gray-700">-</td>
+                        <td class="col-cvr py-3 text-xs text-gray-700">0,0%</td>
+                        <td class="col-ctr py-3 text-xs text-gray-700">0,60%</td>
+                        <td class="col-estoque py-3 text-xs text-gray-700">0</td>
+                        <td class="col-recomendacoes py-3 text-xs text-gray-700">Remover anúncios</td> 
+                    </tr>
+                 </tbody>
+            </table>
+        </div>
+
+        <footer class="mt-8">
+            <nav class="flex justify-between items-center w-full">
+                <span id="pagination-prev" class="text-sm sm:text-base font-medium text-gray-500 opacity-50 cursor-not-allowed">
+                    &lt; Anterior
+                </span>
+                <div class="text-center" style="font-size: 7pt;">
+                    <p class="text-gray-600">
+                        Desenvolvido por 
+                        <a id="author-link" href="https://www.linkedin.com/in/silasbarboza/?utm_source=roasxacos.onrender.com" target="_blank" rel="noopener noreferrer" class="font-medium text-blue-600 hover:text-blue-800">
+                            Silas Barboza
+                        </a>
+                        | 2025
+                    </p>
+                </div>
+                <span id="pagination-next" class="text-sm sm:text-base font-medium text-gray-500 opacity-50 cursor-not-allowed">
+                    Seguinte &gt;
+                </span>
+            </nav>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', (event) => {
+            function trackEvent(eventName, eventParams = {}) {
+                console.log('Rastreando Evento:', eventName, eventParams);
+                if (typeof fbq === 'function') { fbq('track', eventName, eventParams); }
+                if (typeof gtag === 'function') { gtag('event', eventName, eventParams); }
+            }
+            const tableContainer = document.querySelector('.tabela-container');
+            if (tableContainer) {
+                tableContainer.addEventListener('scroll', () => {
+                    trackEvent('Scroll', { event_category: 'Interacao Tabela', event_label: 'Scroll na tabela de anuncios' });
+                }, { once: true });
+            }
+            const authorLink = document.getElementById('author-link');
+            if (authorLink) {
+                authorLink.addEventListener('click', () => {
+                    trackEvent('click_author', { event_category: 'Navegacao Rodape', event_label: 'Clique no link do autor (Silas Barboza)' });
+                });
+            }
+            const prevLink = document.getElementById('pagination-prev');
+            const nextLink = document.getElementById('pagination-next');
+            function paginationClickListener() {
+                const label = this.id === 'pagination-prev' ? 'Anterior' : 'Seguinte';
+                trackEvent('click_pagination', { event_category: 'Navegacao Rodape', event_label: `Clique na paginacao: ${label}` });
+            }
+            if (prevLink) { prevLink.addEventListener('click', paginationClickListener); }
+            if (nextLink) { nextLink.addEventListener('click', paginationClickListener); }
+        });
+    </script>
+
+</body>
+</html>
