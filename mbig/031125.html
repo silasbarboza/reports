@@ -1,0 +1,1367 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Análise de Anúncios - MBIG COMERCIOVAREJISTA</title> <script src="https://cdn.tailwindcss.com"></script>
+
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-VMNCQ25JSD"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-VMNCQ25JSD'); // Substitua pelo seu ID
+      // PageView é rastreado automaticamente por esta linha
+    </script>
+    <script>
+    !function(f,b,e,v,n,t,s)
+    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t,s)}(window, document,'script',
+    'https://connect.facebook.net/en_US/fbevents.js');
+    fbq('init', 'YOUR_PIXEL_ID'); // Substitua pelo seu ID
+    fbq('track', 'PageView'); // Rastreia PageView
+    </script>
+    <noscript><img height="1" width="1" style="display:none"
+    src="https://www.facebook.com/tr?id=YOUR_PIXEL_ID&ev=PageView&noscript=1"
+    /></noscript>
+    <style>
+        /* Fonte Inter (padrão do Tailwind) */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        /* NOVAS FONTES: Barlow e Barlow Condensed */
+        @import url('https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;700&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* bg-gray-100 */
+            padding: 30px; /* Margem da página */
+        }
+
+        /* Estilo para o header da tabela ficar fixo no topo durante o scroll vertical */
+        th {
+            position: sticky; /* Mantém o header da linha fixo no topo */
+            top: 0;
+            z-index: 10; /* Z-index para o header da linha */
+            background-color: #f9fafb; /* bg-gray-50 - Pode ser sobrescrito pelo estilo .sX */
+            padding-left: 0;
+            padding-right: 0;
+            font-family: 'Barlow', sans-serif; /* Fonte Barlow aplicada a todos os headers */
+        }
+
+        td {
+            padding-left: 0;
+            padding-right: 0;
+        }
+
+        /* Cores alternadas nas linhas - Pode ser sobrescrito pelo estilo .sX */
+        tbody tr:nth-child(even) {
+            background-color: #f9fafb; /* bg-gray-50 */
+        }
+        tbody tr:hover {
+            background-color: #f0f9ff; /* bg-blue-50 */
+        }
+
+        /* Container da tabela com scroll vertical e horizontal */
+        .tabela-container {
+            width: 100%;
+            overflow-x: auto; /* Permite scroll horizontal */
+            overflow-y: auto; /* Permite scroll vertical */
+            max-height: 70vh; /* Altura máxima */
+            border-radius: 0.5rem; /* rounded-lg */
+            border: 1px solid #e5e7eb; /* border border-gray-200 */
+            background-color: #ffffff; /* bg-white */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* shadow-lg */
+        }
+
+        /* --- COLUNAS COM LARGURA FIXA (Mantido caso precise usar com classes Tailwind) --- */
+        .col-campanha { width: 180px; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-left: 0.75rem; }
+        .col-item-id { width: 100px; max-width: 100px; padding-left: 0.4rem; }
+        .col-titulo-item { width: 450px; max-width: 450px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-left: 0.6rem; }
+        .col-vendas-totais { text-align: center; padding-left: 0.8rem; padding-right: 0.6rem; white-space: nowrap; }
+        .col-vendas-ads { text-align: center; padding-left: 0.6rem; padding-right: 0.6rem; white-space: nowrap; }
+        .col-receita-ads { text-align: right; padding-right: 0.45rem; white-space: nowrap; }
+        .col-invest-ads { text-align: right; padding-right: 0.45rem; white-space: nowrap; }
+        .col-roas { text-align: center; padding-left: 0.6rem; padding-right: 0.6rem; white-space: nowrap; }
+        .col-roas-obj { text-align: center; padding-left: 0.6rem; padding-right: 0.6rem; white-space: nowrap; }
+        .col-cvr { padding-left: 0.5rem; white-space: nowrap; }
+        .col-ctr { padding-left: 0.5rem; white-space: nowrap; }
+        .col-estoque { width: 60px; max-width: 60px; text-align: center; padding-left: 0.3rem; padding-right: 0.3rem; white-space: nowrap; }
+        .col-recomendacoes { padding-left: 0.5rem; padding-right: 0.5rem; }
+
+        /* --- FONTES ESPECÍFICAS --- */
+        thead th.col-vendas-totais, thead th.col-vendas-ads, thead th.col-receita-ads, thead th.col-invest-ads, thead th.col-estoque {
+            font-family: 'Barlow Condensed', sans-serif;
+        }
+        
+        /* --- ESTILOS PARA COLUNAS STICKY (COM ALTERAÇÃO 1) --- */
+        thead th:nth-child(1) {
+            position: sticky;
+            left: 0;
+            width: 180px;
+            min-width: 180px;
+            max-width: 180px;
+            z-index: 11; /* (Será sobrescrito para 12 abaixo) */
+            
+            /* Pedido 1: Ellipsis */
+            overflow: hidden; 
+            text-overflow: ellipsis;
+        }
+        tbody td:nth-child(1) {
+            position: sticky;
+            left: 0;
+            width: 180px;
+            min-width: 180px;
+            max-width: 180px;
+            z-index: 11; 
+            
+            /* Pedido 1: Ellipsis */
+            overflow: hidden; 
+            text-overflow: ellipsis;
+            /* white-space: nowrap; (Vem das classes .sX) */
+        }
+
+        thead th:nth-child(2),
+        tbody td:nth-child(2) {
+            position: sticky;
+            left: 180px; /* 180px (largura da col 1) */
+            width: 100px;
+            min-width: 100px;
+            max-width: 100px;
+            z-index: 11;
+        }
+
+        /* Garante que os headers sticky fiquem acima dos dados sticky */
+        thead th:nth-child(1),
+        thead th:nth-child(2) {
+            z-index: 12; /* Z-index maior para os headers sticky (acima do z-index: 10 e 11) */
+        }
+        /* --- FIM DOS ESTILOS STICKY --- */
+
+        /* --- [NOVO] Ajustes de colunas (Ellipsis, Wrap) --- */
+        
+        /* Pedido 2: Ellipsis na coluna "Título Item" (col 3) */
+        thead th:nth-child(3),
+        tbody td:nth-child(3) {
+            max-width: 450px; /* Essencial para ellipsis */
+            width: 450px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            /* white-space: nowrap; (Vem das classes .sX) */
+        }
+
+        /* Pedido 3: Nowrap na coluna "Recomendações" (col 13) */
+        thead th:nth-child(13),
+        tbody td:nth-child(13) {
+            white-space: nowrap;
+        }
+
+        /* Pedido 4: overflow-wrap no header "Estoque" (col 12) */
+        thead th:nth-child(12) {
+            overflow-wrap: normal;
+        }
+        /* --- FIM DOS NOVOS AJUSTES --- */
+
+
+        /* --- ESTILOS DO MBIG.html (SUBSTITUÍDOS) --- */
+        .ritz .waffle a {
+            color: inherit;
+        }
+        .ritz .waffle .s37 {
+            background-color: #edc9d0;
+            text-align: center;
+            color: #000000;
+            font-family: 'Barlow', Arial, sans-serif;
+            font-size: 10pt;
+            vertical-align: middle;
+            white-space: nowrap;
+            direction: ltr;
+            padding: 2px 3px 2px 3px;
+        }
+        .ritz .waffle .s36 {
+            background-color: #fffaea;
+            text-align: center;
+            color: #000000;
+            font-family: 'Barlow', Arial, sans-serif;
+            font-size: 10pt;
+            vertical-align: middle;
+            white-space: nowrap;
+            direction: ltr;
+            padding: 2px 3px 2px 3px;
+        }
+        .ritz .waffle .s30 {
+            background-color: #c7e8d8;
+            text-align: center;
+            color: #000000;
+            font-family: 'Barlow', Arial, sans-serif;
+            font-size: 10pt;
+            vertical-align: middle;
+            white-space: nowrap;
+            direction: ltr;
+            padding: 2px 3px 2px 3px;
+        }
+        .ritz .waffle .s57 {
+            background-color: #e98d86;
+            text-align: center;
+            color: #000000;
+            font-family: 'Barlow', Arial, sans-serif;
+            font-size: 10pt;
+            vertical-align: middle;
+            white-space: nowrap;
+            direction: ltr;
+            padding: 2px 3px 2px 3px;
+        }
+        .ritz .waffle .s16 {
+            background-color: #c3e7d5;
+            text-align: center;
+            color: #000000;
+            font-family: 'Barlow', Arial, sans-serif;
+            font-size: 10pt;
+            vertical-align: middle;
+            white-space: nowrap;
+            direction: ltr;
+            padding: 2px 3px 2px 3px;
+        }
+        .ritz .waffle .s49 {
+            background-color: #ffe59d;
+            text-align: center;
+            color: #000000;
+            font-family: 'Barlow', Arial, sans-serif;
+            font-size: 10pt;
+            vertical-align: middle;
+            white-space: nowrap;
+            direction: ltr;
+            padding: 2px 3px 2px 3px;
+        }
+        .ritz .waffle .s27 {
+            background-color: #f9d567;
+            text-align: center;
+            color: #000000;
+            font-family: 'Barlow', Arial, sans-serif;
+            font-size: 10pt;
+            vertical-align: middle;
+            white-space: nowrap;
+            direction: ltr;
+            padding: 2px 3px 2px 3px;
+        }
+        .ritz .waffle .s15 {
+            background-color: #ffd666;
+            text-align: center;
+            color: #000000;
+            font-family: 'Barlow', Arial, sans-serif;
+            font-size: 10pt;
+            vertical-align: middle;
+            white-space: nowrap;
+            direction: ltr;
+            padding: 2px 3px 2px 3px;
+        }
+        .ritz .waffle .s54 {
+            background-color: #9ed8bb;
+            text-align: center;
+            color: #000000;
+            font-family: 'Barlow', Arial, sans-serif;
+            font-size: 10pt;
+            vertical-align: middle;
+            white-space: nowrap;
+            direction: ltr;
+            padding: 2px 3px 2px 3px;
+        }
+        .ritz .waffle .s3 {
+            background-color: #ffffff;
+            text-align: center;
+            color: #000000;
+            font-family: 'Barlow', Arial, sans-serif;
+            font-size: 10pt;
+            vertical-align: middle;
+            white-space: nowrap;
+            direction: ltr;
+            padding: 2px 3px 2px 3px;
+        }
+        .ritz .waffle .s43 {
+            background-color: #cfecde;
+            text-align: center;
+            color: #000000;
+            font-family: 'Barlow', Arial, sans-serif;
+            font-size: 10pt;
+            vertical-align: middle;
+            white-space: nowrap;
+            direction: ltr;
+            padding: 2px 3px 2px 3px;
+        }
+        .ritz .waffle .s26 {
+            background-color: #f3fbf7;
+            text-align: center;
+            color: #000000;
+            font-family: 'Barlow', Arial, sans-serif;
+            font-size: 10pt;
+            vertical-align: middle;
+            white-space: nowrap;
+            direction: ltr;
+            padding: 2px 3px 2px 3px;
+        }
+        .ritz .waffle .s48 {
+            background-color: #ffd971;
+            text-align: center;
+            color: #000000;
+            font-family: 'Barlow', Arial, sans-serif;
+            font-size: 10pt;
+            vertical-align: middle;
+            white-space: nowrap;
+            direction: ltr;
+            padding: 2px 3px 2px 3px;
+        }
+        .ritz .waffle .s20 {
+            background-color: #f2d9de;
+            text-align: center;
+            color: #000000;
+            font-family: 'Barlow', Arial, sans-serif;
+            font-size: 10pt;
+            vertical-align: middle;
+            white-space: nowrap;
+            direction: ltr;
+            padding: 2px 3px 2px 3px;
+        }
+        .ritz .waffle .s40 {
+            background-color: #ffe292;
+            text-align: center;
+            color: #000000;
+            font-family: 'Barlow', Arial, sans-serif;
+            font-size: 10pt;
+            vertical-align: middle;
+            white-space: nowrap;
+            direction: ltr;
+            padding: 2px 3px 2px 3px;
+        }
+        .ritz .waffle .s24 {
+            background-color: #f1d5da;
+            text-align: center;
+            color: #000000;
+            font-family: 'Barlow', Arial, sans-serif;
+            font-size: 10pt;
+            vertical-align: middle;
+            white-space: nowrap;
+            direction: ltr;
+            padding: 2px 3px 2px 3px;
+        }
+        .ritz .waffle .s28 {
+            background-color: #ffe18d;
+            text-align: center;
+            color: #000000;
+            font-family: 'Barlow', Arial, sans-serif;
+            font-size: 10pt;
+            vertical-align: middle;
+            white-space: nowrap;
+            direction: ltr;
+            padding: 2px 3px 2px 3px;
+        }
+        .ritz .waffle .s55 {
+            background-color: #e4f4ec;
+            text-align: center;
+            color: #000000;
+            font-family: 'Barlow', Arial, sans-serif;
+            font-size: 10pt;
+            vertical-align: middle;
+            white-space: nowrap;
+            direction: ltr;
+            padding: 2px 3px 2px 3px;
+        }
+        .ritz .waffle .s6 {
+            background-color: #e67c73;
+            text-align: center;
+            color: #000000;
+            font-family: 'Barlow', Arial, sans-serif;
+            font-size: 10pt;
+            vertical-align: middle;
+            white-space: nowrap;
+            direction: ltr;
+            padding: 2px 3px 2px 3px;
+        }
+        .ritz .waffle .s33 {
+            background-color: #eda49e;
+            text-align: center;
+            color: #000000;
+            font-family: 'Barlow', Arial, sans-serif;
+            font-size: 10pt;
+            vertical-align: middle;
+            white-space: nowrap;
+            direction: ltr;
+            padding: 2px 3px 2px 3px;
+        }
+        .ritz .waffle .s7 {
+            background-color: #f3f3f3;
+            text-align: left;
+            color: #000000;
+            font-family: 'Barlow Condensed', Arial, sans-serif;
+            font-size: 10pt;
+            vertical-align: middle;
+            white-space: nowrap;
+            direction: ltr;
+            padding: 2px 3px 2px 3px;
+        }
+        .ritz .waffle .s46 {
+            background-color: #efafa9;
+            text-align: center;
+            color: #000000;
+            font-family: 'Barlow', Arial, sans-serif;
+            font-size: 10pt;
+            vertical-align: middle;
+            white-space: nowrap;
+            direction: ltr;
+            padding: 2px 3px 2px 3px;
+        }
+        .ritz .waffle .s11 {
+            background-color: #fffefa;
+            text-align: center;
+            color: #000000;
+            font-family: 'Barlow', Arial, sans-serif;
+            font-size: 10pt;
+            vertical-align: middle;
+            white-space: nowrap;
+            direction: ltr;
+            padding: 2px 3px 2px 3px;
+        }
+        .ritz .waffle .s45 {
+            background-color: #faeff1;
+            text-align: center;
+            color: #000000;
+            font-family: 'Barlow', Arial, sans-serif;
+            font-size: 10pt;
+            vertical-align: middle;
+            white-space: nowrap;
+            direction: ltr;
+            padding: 2px 3px 2px 3px;
+        }
+        .ritz .waffle .s56 {
+            background-color: #fcd666;
+            text-align: center;
+            color: #000000;
+            font-family: 'Barlow', Arial, sans-serif;
+            font-size: 10pt;
+            vertical-align: middle;
+            white-space: nowrap;
+            direction: ltr;
+            padding: 2px 3px 2px 3px;
+        }
+        .ritz .waffle .s1 {
+            background-color: #bdbdbd;
+            text-align: left;
+            color: #000000;
+            font-family: 'Barlow Condensed', Arial, sans-serif;
+            font-size: 10pt;
+            vertical-align: middle;
+            white-space: nowrap;
+            direction: ltr;
+            padding: 2px 3px 2px 3px;
+        }
+        .ritz .waffle .s0 {
+            background-color: #bdbdbd;
+            text-align: center;
+            color: #000000;
+            font-family: 'Barlow Condensed', Arial, sans-serif;
+            font-size: 10pt;
+            vertical-align: middle;
+            white-space: nowrap;
+            direction: ltr;
+            padding: 2px 3px 2px 3px;
+        }
+        .ritz .waffle .s29 {
+            background-color: #fefdfd;
+            text-align: center;
+            color: #000000;
+            font-family: 'Barlow', Arial, sans-serif;
+            font-size: 10pt;
+            vertical-align: middle;
+            white-space: nowrap;
+            direction: ltr;
+            padding: 2px 3px 2px 3px;
+        }
+        .ritz .waffle .s59 {
+            background-color: #fffbef;
+            text-align: center;
+            color: #000000;
+            font-family: 'Barlow', Arial, sans-serif;
+            font-size: 10pt;
+            vertical-align: middle;
+            white-space: nowrap;
+            direction: ltr;
+            padding: 2px 3px 2px 3px;
+        }
+        .ritz .waffle .s21 {
+            background-color: #edcbd2;
+            text-align: center;
+            color: #000000;
+            font-family: 'Barlow', Arial, sans-serif;
+            font-size: 10pt;
+            vertical-align: middle;
+            white-space: nowrap;
+            direction: ltr;
+            padding: 2px 3px 2px 3px;
+        }
+        .ritz .waffle .s14 {
+            background-color: #f5b26c;
+            text-align: center;
+            color: #000000;
+            font-family: 'Barlow', Arial, sans-serif;
+            font-size: 10pt;
+            vertical-align: middle;
+            white-space: nowrap;
+            direction: ltr;
+            padding: 2px 3px 2px 3px;
+        }
+        .ritz .waffle .s38 {
+            background-color: #fae8e7;
+            text-align: center;
+            color: #000000;
+            font-family: 'Barlow', Arial, sans-serif;
+            font-size: 10pt;
+            vertical-align: middle;
+            white-space: nowrap;
+            direction: ltr;
+            padding: 2px 3px 2px 3px;
+        }
+        .ritz .waffle .s52 {
+            background-color: #f5cdc9;
+            text-align: center;
+            color: #000000;
+            font-family: 'Barlow', Arial, sans-serif;
+            font-size: 10pt;
+            vertical-align: middle;
+            white-space: nowrap;
+            direction: ltr;
+            padding: 2px 3px 2px 3px;
+        }
+        .ritz .waffle .s31 {
+            background-color: #f5fbf8;
+            text-align: center;
+            color: #000000;
+            font-family: 'Barlow', Arial, sans-serif;
+            font-size: 10pt;
+            vertical-align: middle;
+            white-space: nowrap;
+            direction: ltr;
+            padding: 2px 3px 2px 3px;
+        }
+        .ritz .waffle .s25 {
+            background-color: #f3c2be;
+            text-align: center;
+            color: #000000;
+            font-family: 'Barlow', Arial, sans-serif;
+            font-size: 10pt;
+            vertical-align: middle;
+            white-space: nowrap;
+            direction: ltr;
+            padding: 2px 3px 2px 3px;
+        }
+        .ritz .waffle .s41 {
+            background-color: #f2d8dd;
+            text-align: center;
+            color: #000000;
+            font-family: 'Barlow', Arial, sans-serif;
+            font-size: 10pt;
+            vertical-align: middle;
+            white-space: nowrap;
+            direction: ltr;
+            padding: 2px 3px 2px 3px;
+        }
+        .ritz .waffle .s58 {
+            background-color: #f7d567;
+            text-align: center;
+            color: #000000;
+            font-family: 'Barlow', Arial, sans-serif;
+            font-size: 10pt;
+            vertical-align: middle;
+            white-space: nowrap;
+            direction: ltr;
+            padding: 2px 3px 2px 3px;
+        }
+        .ritz .waffle .s8 {
+            background-color: #f3f3f3;
+            text-align: center;
+            color: #000000;
+            font-family: 'Barlow', Arial, sans-serif;
+            font-size: 10pt;
+            vertical-align: middle;
+            white-space: nowrap;
+            direction: ltr;
+            padding: 2px 3px 2px 3px;
+        }
+        .ritz .waffle .s44 {
+            background-color: #fdf9fa;
+            text-align: center;
+            color: #000000;
+            font-family: 'Barlow', Arial, sans-serif;
+            font-size: 10pt;
+            vertical-align: middle;
+            white-space: nowrap;
+            direction: ltr;
+            padding: 2px 3px 2px 3px;
+        }
+        .ritz .waffle .s12 {
+            background-color: #fdd666;
+            text-align: center;
+            color: #000000;
+            font-family: 'Barlow', Arial, sans-serif;
+            font-size: 10pt;
+            vertical-align: middle;
+            white-space: nowrap;
+            direction: ltr;
+            padding: 2px 3px 2px 3px;
+        }
+        .ritz .waffle .s13 {
+            background-color: #eb8e71;
+            text-align: center;
+            color: #000000;
+            font-family: 'Barlow', Arial, sans-serif;
+            font-size: 10pt;
+            vertical-align: middle;
+            white-space: nowrap;
+            direction: ltr;
+            padding: 2px 3px 2px 3px;
+        }
+        .ritz .waffle .s10 {
+            background-color: #fdd167;
+            text-align: center;
+            color: #000000;
+            font-family: 'Barlow', Arial, sans-serif;
+            font-size: 10pt;
+            vertical-align: middle;
+            white-space: nowrap;
+            direction: ltr;
+            padding: 2px 3px 2px 3px;
+        }
+        .ritz .waffle .s42 {
+            background-color: #c0e6d3;
+            text-align: center;
+            color: #000000;
+            font-family: 'Barlow', Arial, sans-serif;
+            font-size: 10pt;
+            vertical-align: middle;
+            white-space: nowrap;
+            direction: ltr;
+            padding: 2px 3px 2px 3px;
+        }
+        .ritz .waffle .s53 {
+            background-color: #f1a46e;
+            text-align: center;
+            color: #000000;
+            font-family: 'Barlow', Arial, sans-serif;
+            font-size: 10pt;
+            vertical-align: middle;
+            white-space: nowrap;
+            direction: ltr;
+            padding: 2px 3px 2px 3px;
+        }
+        .ritz .waffle .s22 {
+            background-color: #e0f3ea;
+            text-align: center;
+            color: #000000;
+            font-family: 'Barlow', Arial, sans-serif;
+            font-size: 10pt;
+            vertical-align: middle;
+            white-space: nowrap;
+            direction: ltr;
+            padding: 2px 3px 2px 3px;
+        }
+        .ritz .waffle .s50 {
+            background-color: #caeada;
+            text-align: center;
+            color: #000000;
+            font-family: 'Barlow', Arial, sans-serif;
+            font-size: 10pt;
+            vertical-align: middle;
+            white-space: nowrap;
+            direction: ltr;
+            padding: 2px 3px 2px 3px;
+        }
+        .ritz .waffle .s5 {
+            background-color: #ea4335;
+            text-align: center;
+            font-weight: bold;
+            color: #ffffff;
+            font-family: 'Barlow', Arial, sans-serif;
+            font-size: 10pt;
+            vertical-align: middle;
+            white-space: nowrap;
+            direction: ltr;
+            padding: 2px 3px 2px 3px;
+        }
+        .ritz .waffle .s2 {
+            background-color: #ffffff;
+            text-align: left;
+            color: #000000;
+            font-family: 'Barlow Condensed', Arial, sans-serif;
+            font-size: 10pt;
+            vertical-align: middle;
+            white-space: nowrap;
+            direction: ltr;
+            padding: 2px 3px 2px 3px;
+        }
+        .ritz .waffle .s47 {
+            background-color: #e88572;
+            text-align: center;
+            color: #000000;
+            font-family: 'Barlow', Arial, sans-serif;
+            font-size: 10pt;
+            vertical-align: middle;
+            white-space: nowrap;
+            direction: ltr;
+            padding: 2px 3px 2px 3px;
+        }
+        .ritz .waffle .s19 {
+            background-color: #fff5d9;
+            text-align: center;
+            color: #000000;
+            font-family: 'Barlow', Arial, sans-serif;
+            font-size: 10pt;
+            vertical-align: middle;
+            white-space: nowrap;
+            direction: ltr;
+            padding: 2px 3px 2px 3px;
+        }
+        .ritz .waffle .s9 {
+            background-color: #fffdf5;
+            text-align: center;
+            color: #000000;
+            font-family: 'Barlow', Arial, sans-serif;
+            font-size: 10pt;
+            vertical-align: middle;
+            white-space: nowrap;
+            direction: ltr;
+            padding: 2px 3px 2px 3px;
+        }
+        .ritz .waffle .s18 {
+            background-color: #d6efe2;
+            text-align: center;
+            color: #000000;
+            font-family: 'Barlow', Arial, sans-serif;
+            font-size: 10pt;
+            vertical-align: middle;
+            white-space: nowrap;
+            direction: ltr;
+            padding: 2px 3px 2px 3px;
+        }
+        .ritz .waffle .s23 {
+            background-color: #e5f5ed;
+            text-align: center;
+            color: #000000;
+            font-family: 'Barlow', Arial, sans-serif;
+            font-size: 10pt;
+            vertical-align: middle;
+            white-space: nowrap;
+            direction: ltr;
+            padding: 2px 3px 2px 3px;
+        }
+        .ritz .waffle .s34 {
+            background-color: #eff9f4;
+            text-align: center;
+            color: #000000;
+            font-family: 'Barlow', Arial, sans-serif;
+            font-size: 10pt;
+            vertical-align: middle;
+            white-space: nowrap;
+            direction: ltr;
+            padding: 2px 3px 2px 3px;
+        }
+        .ritz .waffle .s39 {
+            background-color: #ffdf87;
+            text-align: center;
+            color: #000000;
+            font-family: 'Barlow', Arial, sans-serif;
+            font-size: 10pt;
+            vertical-align: middle;
+            white-space: nowrap;
+            direction: ltr;
+            padding: 2px 3px 2px 3px;
+        }
+        .ritz .waffle .s4 {
+            background-color: #fff8e4;
+            text-align: center;
+            color: #000000;
+            font-family: 'Barlow', Arial, sans-serif;
+            font-size: 10pt;
+            vertical-align: middle;
+            white-space: nowrap;
+            direction: ltr;
+            padding: 2px 3px 2px 3px;
+        }
+        .ritz .waffle .s51 {
+            background-color: #eaf7f1;
+            text-align: center;
+            color: #000000;
+            font-family: 'Barlow', Arial, sans-serif;
+            font-size: 10pt;
+            vertical-align: middle;
+            white-space: nowrap;
+            direction: ltr;
+            padding: 2px 3px 2px 3px;
+        }
+        .ritz .waffle .s17 {
+            background-color: #e6b4be;
+            text-align: center;
+            color: #000000;
+            font-family: 'Barlow', Arial, sans-serif;
+            font-size: 10pt;
+            vertical-align: middle;
+            white-space: nowrap;
+            direction: ltr;
+            padding: 2px 3px 2px 3px;
+        }
+        .ritz .waffle .s35 {
+            background-color: #f6d568;
+            text-align: center;
+            color: #000000;
+            font-family: 'Barlow', Arial, sans-serif;
+            font-size: 10pt;
+            vertical-align: middle;
+            white-space: nowrap;
+            direction: ltr;
+            padding: 2px 3px 2px 3px;
+        }
+        .ritz .waffle .s32 {
+            background-color: #ed9770;
+            text-align: center;
+            color: #000000;
+            font-family: 'Barlow', Arial, sans-serif;
+            font-size: 10pt;
+            vertical-align: middle;
+            white-space: nowrap;
+            direction: ltr;
+            padding: 2px 3px 2px 3px;
+        }
+        /* --- FIM DOS ESTILOS SUBSTITUÍDOS --- */
+    </style>
+</head>
+<body>
+
+    <div>
+        <div class="flex items-center justify-between mb-8">
+            <div class="flex items-center">
+                <img src="https://http2.mlstatic.com/D_NQ_NP_654956-MLA88101910481_072025-F.jpg"
+                     alt="Logo MBIG COMERCIOVAREJISTA"
+                     class="h-16 mr-4" style="max-height: 64px;">
+                <div>
+                    <h1 class="text-xl sm:text-3xl font-bold text-gray-800">Análise ML Product Ads</h1>
+                    <h2 class="text-lg sm:text-xl font-semibold text-gray-600">MBIG COMERCIOVAREJISTA</h2>
+                </div>
+            </div>
+            <div class="text-right">
+                <h2 class="text-sm leading-tight sm:text-xl font-semibold text-gray-600">Últimos 14 Dias</h2>
+                <p class="text-xs sm:text-base font-medium text-gray-500">20/10/25 a 02/11/25</p>
+            </div>
+        </div>
+
+        <!-- O CONTEÚDO DA TABELA ABAIXO FOI SUBSTITUÍDO -->
+        <div class="tabela-container ritz grid-container" dir="ltr">
+            <table class="waffle" cellspacing="0" cellpadding="0">
+                <tbody>
+                    <tr style="height: 20px">
+                        <td class="s0" dir="ltr">Campanha</td>
+                        <td class="s0" dir="ltr">Item ID</td>
+                        <td class="s0" dir="ltr">Título Item</td>
+                        <td class="s0" dir="ltr">Vendas<br>Totais</td>
+                        <td class="s0" dir="ltr">Vendas<br>Ads</td>
+                        <td class="s0" dir="ltr">Receita<br>Ads</td>
+                        <td class="s0" dir="ltr">Invest.<br>Ads</td>
+                        <td class="s0" dir="ltr">ROAS</td>
+                        <td class="s0" dir="ltr">ROAS<br>Obj.</td>
+                        <td class="s0" dir="ltr">CVR<br>(%)</td>
+                        <td class="s0" dir="ltr">CTR<br>(%)</td>
+                        <td class="s1" dir="ltr">Estoque</td>
+                        <td class="s0" dir="ltr">Recomendações</td>
+                    </tr>
+                    <tr style="height: 20px">
+                        <td class="s2">-</td>
+                        <td class="s3">4150196025</td>
+                        <td class="s2">Tapete Higiênico Cães Ultra Absorvente Petfit 60x90 50un</td>
+                        <td class="s4">6</td>
+                        <td class="s5">0</td>
+                        <td class="s3">R$ 0,00</td>
+                        <td class="s3">R$ 0,00</td>
+                        <td class="s3"></td>
+                        <td class="s3">null</td>
+                        <td class="s3"></td>
+                        <td class="s3"></td>
+                        <td class="s6">8</td>
+                        <td class="s2" dir="ltr">Incluir na campanha Tapete Amarelo</td>
+                    </tr>
+                    <tr style="height: 20px">
+                        <td class="s7">-</td>
+                        <td class="s8">4737621640</td>
+                        <td class="s7">Magnésio Taurato 120 Cápsulas - Meissen</td>
+                        <td class="s9">3</td>
+                        <td class="s5">0</td>
+                        <td class="s8">R$ 0,00</td>
+                        <td class="s8">R$ 0,00</td>
+                        <td class="s8"></td>
+                        <td class="s8">null</td>
+                        <td class="s8"></td>
+                        <td class="s8"></td>
+                        <td class="s10">29</td>
+                        <td class="s7" dir="ltr">Criar campanha &quot;Novembro&quot;</td>
+                    </tr>
+                    <tr style="height: 20px">
+                        <td class="s2">-</td>
+                        <td class="s3">4112351248</td>
+                        <td class="s2">Cafeteira Bialetti Italiana Moka Express 3 Xícaras De Café Prata-facto</td>
+                        <td class="s11">2</td>
+                        <td class="s5">0</td>
+                        <td class="s3">R$ 0,00</td>
+                        <td class="s3">R$ 0,00</td>
+                        <td class="s3"></td>
+                        <td class="s3">null</td>
+                        <td class="s3"></td>
+                        <td class="s3"></td>
+                        <td class="s12">42</td>
+                        <td class="s2" dir="ltr">Criar campanha &quot;Novembro&quot;</td>
+                    </tr>
+                    <tr style="height: 20px">
+                        <td class="s7">-</td>
+                        <td class="s8">3493708861</td>
+                        <td class="s7">Frigideira Média Antiaderente Bialetti Petravera Pro 24 Cm</td>
+                        <td class="s11">2</td>
+                        <td class="s5">0</td>
+                        <td class="s8">R$ 0,00</td>
+                        <td class="s8">R$ 0,00</td>
+                        <td class="s8"></td>
+                        <td class="s8">null</td>
+                        <td class="s8"></td>
+                        <td class="s8"></td>
+                        <td class="s13">14</td>
+                        <td class="s7" dir="ltr">Criar campanha &quot;Novembro&quot;</td>
+                    </tr>
+                    <tr style="height: 20px">
+                        <td class="s2">-</td>
+                        <td class="s3">4184727909</td>
+                        <td class="s2">Mini Mochila Costas Infantil Tigor T. Tigre Verde Escolar</td>
+                        <td class="s11">2</td>
+                        <td class="s5">0</td>
+                        <td class="s3">R$ 0,00</td>
+                        <td class="s3">R$ 0,00</td>
+                        <td class="s3"></td>
+                        <td class="s3">null</td>
+                        <td class="s3"></td>
+                        <td class="s3"></td>
+                        <td class="s14">22</td>
+                        <td class="s2" dir="ltr">Criar campanha &quot;Novembro&quot;</td>
+                    </tr>
+                    <tr style="height: 20px">
+                        <td class="s7">-</td>
+                        <td class="s8">5217415670</td>
+                        <td class="s7">Mini Mochila Costas Tigor Tigre Bb Bebê Infantil Menino Azul</td>
+                        <td class="s11">2</td>
+                        <td class="s5">0</td>
+                        <td class="s8">R$ 0,00</td>
+                        <td class="s8">R$ 0,00</td>
+                        <td class="s8"></td>
+                        <td class="s8">null</td>
+                        <td class="s8"></td>
+                        <td class="s8"></td>
+                        <td class="s15">33</td>
+                        <td class="s7" dir="ltr">Criar campanha &quot;Novembro&quot;</td>
+                    </tr>
+                    <tr style="height: 20px">
+                        <td class="s2 softmerge">
+                            <div class="softmerge-inner" style="width:117px;left:-1px">Caderno inteligente Teste</div>
+                        </td>
+                        <td class="s3">3992719138</td>
+                        <td class="s2">Caderno Inteligente Palmeiras Verdão Grande</td>
+                        <td class="s11">2</td>
+                        <td class="s11">2</td>
+                        <td class="s3">R$ 271,72</td>
+                        <td class="s3">R$ 14,27</td>
+                        <td class="s16">19,0x</td>
+                        <td class="s3">8,3x</td>
+                        <td class="s3">5,0%</td>
+                        <td class="s3">0,25%</td>
+                        <td class="s6">3</td>
+                        <td class="s2" dir="ltr">Repor estoque</td>
+                    </tr>
+                    <tr style="height: 20px">
+                        <td class="s7 softmerge">
+                            <div class="softmerge-inner" style="width:117px;left:-1px">Caderno inteligente Teste</div>
+                        </td>
+                        <td class="s8">3448026185</td>
+                        <td class="s7">Caderno Inteligente São Paulo Tricolor Paulista De Disco</td>
+                        <td class="s5">0</td>
+                        <td class="s5">0</td>
+                        <td class="s8">R$ 0,00</td>
+                        <td class="s8">R$ 16,18</td>
+                        <td class="s17">0,0x</td>
+                        <td class="s8">null</td>
+                        <td class="s17">0,0%</td>
+                        <td class="s18">0,69%</td>
+                        <td class="s13">14</td>
+                        <td class="s7" dir="ltr">Promocionar produto</td>
+                    </tr>
+                    <tr style="height: 20px">
+                        <td class="s2 softmerge">
+                            <div class="softmerge-inner" style="width:117px;left:-1px">Caderno inteligente Teste</div>
+                        </td>
+                        <td class="s3">4141339598</td>
+                        <td class="s2">Caderno Inteligente Grande Gocase Poeira Das Estrelas</td>
+                        <td class="s19">8</td>
+                        <td class="s19">8</td>
+                        <td class="s3">R$ 978,20</td>
+                        <td class="s3">R$ 195,11</td>
+                        <td class="s20">5,0x</td>
+                        <td class="s3">8,3x</td>
+                        <td class="s21">1,6%</td>
+                        <td class="s22">0,58%</td>
+                        <td class="s6">7</td>
+                        <td class="s2" dir="ltr">Promocionar produto</td>
+                    </tr>
+                    <tr style="height: 20px">
+                        <td class="s7" dir="ltr">Caderno Poeira</td>
+                        <td class="s8" dir="ltr"></td>
+                        <td class="s7" dir="ltr">*** Criar Campanha ***</td>
+                        <td class="s8"></td>
+                        <td class="s8"></td>
+                        <td class="s8"></td>
+                        <td class="s8"></td>
+                        <td class="s8"></td>
+                        <td class="s8"></td>
+                        <td class="s8"></td>
+                        <td class="s8"></td>
+                        <td class="s8"></td>
+                        <td class="s7" dir="ltr">Orçamento: R$100 / ROAS Objetivo: 20x</td>
+                    </tr>
+                    <tr style="height: 20px">
+                        <td class="s2 softmerge">
+                            <div class="softmerge-inner" style="width:117px;left:-1px">Cafeteiras 01 Outubro 25</div>
+                        </td>
+                        <td class="s3">3471469065</td>
+                        <td class="s2">Cafeteira Italiana Bialetti Indução Inox Vênus 4 Xícaras</td>
+                        <td class="s9">3</td>
+                        <td class="s9">3</td>
+                        <td class="s3">R$ 1.079,70</td>
+                        <td class="s3">R$ 77,75</td>
+                        <td class="s23">13,9x</td>
+                        <td class="s3">20,0x</td>
+                        <td class="s24">2,2%</td>
+                        <td class="s25">0,14%</td>
+                        <td class="s6">2</td>
+                        <td class="s2" dir="ltr">Repor estoque</td>
+                    </tr>
+                    <tr style="height: 20px">
+                        <td class="s7 softmerge">
+                            <div class="softmerge-inner" style="width:117px;left:-1px">Cafeteiras 01 Outubro 25</div>
+                        </td>
+                        <td class="s8">3859529230</td>
+                        <td class="s7">Cafeteira Italiana Bialetti Indução Inox Vênus 4 Xícaras</td>
+                        <td class="s5">0</td>
+                        <td class="s5">0</td>
+                        <td class="s8">R$ 0,00</td>
+                        <td class="s8">R$ 0,00</td>
+                        <td class="s8"></td>
+                        <td class="s8">null</td>
+                        <td class="s8"></td>
+                        <td class="s6">0,00%</td>
+                        <td class="s6">4</td>
+                        <td class="s7" dir="ltr">Usar só o anúncio 3471469065</td>
+                    </tr>
+                    <tr style="height: 20px">
+                        <td class="s2 softmerge">
+                            <div class="softmerge-inner" style="width:117px;left:-1px">Crescimento Outubro 2024</div>
+                        </td>
+                        <td class="s3">2707081731</td>
+                        <td class="s2">Kit 3 Malato De Magnésio Vitalab Suplemento Com 120 Cápsulas</td>
+                        <td class="s11">2</td>
+                        <td class="s5">0</td>
+                        <td class="s3">R$ 0,00</td>
+                        <td class="s3">R$ 11,67</td>
+                        <td class="s17">0,0x</td>
+                        <td class="s3">null</td>
+                        <td class="s17">0,0%</td>
+                        <td class="s26">0,38%</td>
+                        <td class="s27">62</td>
+                        <td class="s2" dir="ltr">Promocionar produto</td>
+                    </tr>
+                    <tr style="height: 20px">
+                        <td class="s7" dir="ltr">Novembro</td>
+                        <td class="s8" dir="ltr"></td>
+                        <td class="s7" dir="ltr">*** Criar Campanha ***</td>
+                        <td class="s8"></td>
+                        <td class="s8"></td>
+                        <td class="s8"></td>
+                        <td class="s8"></td>
+                        <td class="s8"></td>
+                        <td class="s8"></td>
+                        <td class="s8"></td>
+                        <td class="s8"></td>
+                        <td class="s8"></td>
+                        <td class="s7" dir="ltr">Orçamento: R$150 / ROAS Objetivo: 6,67x</td>
+                    </tr>
+                    <tr style="height: 20px">
+                        <td class="s2" dir="ltr">Rent. Papelaria</td>
+                        <td class="s3">1909566996</td>
+                        <td class="s2">Refil Caderno Inteligente Pautado Grande 90g Com 50 Folhas</td>
+                        <td class="s15">29</td>
+                        <td class="s28">22</td>
+                        <td class="s3">R$ 774,62</td>
+                        <td class="s3">R$ 79,31</td>
+                        <td class="s29">9,8x</td>
+                        <td class="s3">7,7x</td>
+                        <td class="s30">15,2%</td>
+                        <td class="s31">0,36%</td>
+                        <td class="s32">16</td>
+                        <td class="s2" dir="ltr">Repor estoque</td>
+                    </tr>
+                    <tr style="height: 20px">
+                        <td class="s7" dir="ltr">Rent. Papelaria</td>
+                        <td class="s8">1981693143</td>
+                        <td class="s7">Kit Caderno Inteligente Arco Ìris Pastel E Refil Pautado G</td>
+                        <td class="s5">0</td>
+                        <td class="s5">0</td>
+                        <td class="s8">R$ 0,00</td>
+                        <td class="s8">R$ 5,12</td>
+                        <td class="s17">0,0x</td>
+                        <td class="s8">null</td>
+                        <td class="s17">0,0%</td>
+                        <td class="s33">0,08%</td>
+                        <td class="s6">9</td>
+                        <td class="s7" dir="ltr">Remover de campanha</td>
+                    </tr>
+                    <tr style="height: 20px">
+                        <td class="s2" dir="ltr">Rent. Papelaria</td>
+                        <td class="s3">4385874902</td>
+                        <td class="s2">Caderno Inteligente Grande Flamengo Rosa</td>
+                        <td class="s5">0</td>
+                        <td class="s5">0</td>
+                        <td class="s3">R$ 0,00</td>
+                        <td class="s3">R$ 8,11</td>
+                        <td class="s17">0,0x</td>
+                        <td class="s3">null</td>
+                        <td class="s17">0,0%</td>
+                        <td class="s34">0,43%</td>
+                        <td class="s35">74</td>
+                        <td class="s2" dir="ltr">Promocionar produto</td>
+                    </tr>
+                    <tr style="height: 20px">
+                        <td class="s7" dir="ltr">Rent. Papelaria</td>
+                        <td class="s8" dir="ltr"></td>
+                        <td class="s7" dir="ltr">*** Recomendação de Campanha ***</td>
+                        <td class="s8"></td>
+                        <td class="s8"></td>
+                        <td class="s8"></td>
+                        <td class="s8"></td>
+                        <td class="s8"></td>
+                        <td class="s8"></td>
+                        <td class="s8"></td>
+                        <td class="s8"></td>
+                        <td class="s8"></td>
+                        <td class="s7" dir="ltr">ROAS Objetivo: 6,67x</td>
+                    </tr>
+                    <tr style="height: 20px">
+                        <td class="s2" dir="ltr">Rent. Suplementos</td>
+                        <td class="s3">3781954271</td>
+                        <td class="s2">Whey Protein Vitafor Whey Fort 3w 900g Sabor Frutas Vermelhas</td>
+                        <td class="s36">5</td>
+                        <td class="s11">2</td>
+                        <td class="s3">R$ 399,80</td>
+                        <td class="s3">R$ 79,15</td>
+                        <td class="s20">5,1x</td>
+                        <td class="s3">7,1x</td>
+                        <td class="s37">1,4%</td>
+                        <td class="s38">0,21%</td>
+                        <td class="s6">7</td>
+                        <td class="s2" dir="ltr">Repor estoque + Promocionar produto</td>
+                    </tr>
+                    <tr style="height: 20px">
+                        <td class="s7" dir="ltr">Rent. Suplementos</td>
+                        <td class="s8">3839502550</td>
+                        <td class="s7">Magnésio Malato Vitalab 500mg 120 Cápsulas Sabor Sem Sabor</td>
+                        <td class="s39">23</td>
+                        <td class="s40">21</td>
+                        <td class="s8">R$ 1.077,49</td>
+                        <td class="s8">R$ 219,91</td>
+                        <td class="s41">4,9x</td>
+                        <td class="s8">7,1x</td>
+                        <td class="s42">16,4%</td>
+                        <td class="s43">0,75%</td>
+                        <td class="s5">0</td>
+                        <td class="s7" dir="ltr">Usar só o anúncio 3390201571</td>
+                    </tr>
+                    <tr style="height: 20px">
+                        <td class="s2" dir="ltr">Rent. Suplementos</td>
+                        <td class="s3">3631943353</td>
+                        <td class="s2">Whey Fort 3w Banana 900g Vitafor</td>
+                        <td class="s11">2</td>
+                        <td class="s3">1</td>
+                        <td class="s3">R$ 199,90</td>
+                        <td class="s3">R$ 21,58</td>
+                        <td class="s44">9,3x</td>
+                        <td class="s3">7,1x</td>
+                        <td class="s45">4,0%</td>
+                        <td class="s46">0,10%</td>
+                        <td class="s47">12</td>
+                        <td class="s2" dir="ltr">Repor estoque + Promocionar produto</td>
+                    </tr>
+                    <tr style="height: 20px">
+                        <td class="s7" dir="ltr">Rent. Suplementos</td>
+                        <td class="s8" dir="ltr"></td>
+                        <td class="s7" dir="ltr">*** Recomendação de Campanha ***</td>
+                        <td class="s8"></td>
+                        <td class="s8"></td>
+                        <td class="s8"></td>
+                        <td class="s8"></td>
+                        <td class="s8"></td>
+                        <td class="s8"></td>
+                        <td class="s8"></td>
+                        <td class="s8"></td>
+                        <td class="s8"></td>
+                        <td class="s7" dir="ltr">ROAS Objetivo: 5,26x</td>
+                    </tr>
+                    <tr style="height: 20px">
+                        <td class="s2" dir="ltr">Rent. Variados</td>
+                        <td class="s3">3283210215</td>
+                        <td class="s2">Retentor Volante Traseiro Sabó Fiat Fire 1.0/1.3l 8v Palio</td>
+                        <td class="s48">27</td>
+                        <td class="s49">19</td>
+                        <td class="s3">R$ 2.277,85</td>
+                        <td class="s3">R$ 126,36</td>
+                        <td class="s50">18,0x</td>
+                        <td class="s3">14,3x</td>
+                        <td class="s51">8,8%</td>
+                        <td class="s52">0,16%</td>
+                        <td class="s53">19</td>
+                        <td class="s2" dir="ltr">Repor estoque</td>
+                    </tr>
+                    <tr style="height: 20px">
+                        <td class="s7" dir="ltr">Rent. Variados</td>
+                        <td class="s8">3746504069</td>
+                        <td class="s7">Retentor Volante Traseiro Sabó Fiat Fire 1.0/1.3l 8v Palio</td>
+                        <td class="s36">5</td>
+                        <td class="s5">0</td>
+                        <td class="s8">R$ 0,00</td>
+                        <td class="s8">R$ 7,59</td>
+                        <td class="s17">0,0x</td>
+                        <td class="s8">null</td>
+                        <td class="s17">0,0%</td>
+                        <td class="s54">1,27%</td>
+                        <td class="s53">19</td>
+                        <td class="s7" dir="ltr">Usar só o anúncio 3283210215</td>
+                    </tr>
+                    <tr style="height: 20px">
+                        <td class="s2" dir="ltr">Rent. Variados</td>
+                        <td class="s3">3931034667</td>
+                        <td class="s2">Mini Mochila Maternidade Cor De Rosa Lilica Ripilica Menina Liso</td>
+                        <td class="s5">0</td>
+                        <td class="s5">0</td>
+                        <td class="s3">R$ 0,00</td>
+                        <td class="s3">R$ 13,22</td>
+                        <td class="s17">0,0x</td>
+                        <td class="s3">null</td>
+                        <td class="s17">0,0%</td>
+                        <td class="s55">0,54%</td>
+                        <td class="s56">44</td>
+                        <td class="s2" dir="ltr">Promocionar produto</td>
+                    </tr>
+                    <tr style="height: 20px">
+                        <td class="s7 softmerge">
+                            <div class="softmerge-inner" style="width:117px;left:-1px">Retomada de Vendas</div>
+                        </td>
+                        <td class="s8">1941733420</td>
+                        <td class="s7">Mochila Térmica Cooler Impermeável Cerveja Praia Camping 21l</td>
+                        <td class="s5">0</td>
+                        <td class="s5">0</td>
+                        <td class="s8">R$ 0,00</td>
+                        <td class="s8">R$ 10,44</td>
+                        <td class="s17">0,0x</td>
+                        <td class="s8">null</td>
+                        <td class="s17">0,0%</td>
+                        <td class="s57">0,03%</td>
+                        <td class="s58">71</td>
+                        <td class="s7" dir="ltr">Promocionar produto</td>
+                    </tr>
+                    <tr style="height: 20px">
+                        <td class="s2" dir="ltr">Tapete Amarelo</td>
+                        <td class="s3">3613437801</td>
+                        <td class="s2">Tapete Higiênico 2 X 50 Tapetes 60x90cm Ultra Absorvente</td>
+                        <td class="s59">4</td>
+                        <td class="s5">0</td>
+                        <td class="s3">R$ 0,00</td>
+                        <td class="s3">R$ 0,00</td>
+                        <td class="s3"></td>
+                        <td class="s3">null</td>
+                        <td class="s3"></td>
+                        <td class="s3"></td>
+                        <td class="s6">10</td>
+                        <td class="s2" dir="ltr">Repor estoque</td>
+                    </tr>
+                    <tr style="height: 20px">
+                        <td class="s7" dir="ltr">Tapete Amarelo</td>
+                        <td class="s8">3613425457</td>
+                        <td class="s7">Kit 2x 50 Uni Tapete Higiênico 60x90cm Super Seco Petfit</td>
+                        <td class="s5">0</td>
+                        <td class="s5">0</td>
+                        <td class="s8">R$ 0,00</td>
+                        <td class="s8">R$ 0,00</td>
+                        <td class="s8"></td>
+                        <td class="s8">null</td>
+                        <td class="s8"></td>
+                        <td class="s8"></td>
+                        <td class="s12">41</td>
+                        <td class="s7" dir="ltr">Mudar para anúncio Clássico</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <!-- FIM DA ÁREA SUBSTITUÍDA -->
+
+        <footer class="mt-8">
+            <nav class="flex justify-between items-center w-full">
+                <span id="pagination-prev" class="text-sm sm:text-base font-medium text-gray-500 opacity-50 cursor-not-allowed">
+                    &lt; Anterior
+                </span>
+                <div class="text-center" style="font-size: 7pt;">
+                    <p class="text-gray-600">
+                        Desenvolvido por
+                        <a id="author-link" href="https://www.linkedin.com/in/silasbarboza/?utm_source=roasxacos.onrender.com" target="_blank" rel="noopener noreferrer" class="font-medium text-blue-600 hover:text-blue-800">
+                            Silas Barboza
+                        </a>
+                        | 2025
+                    </p>
+                </div>
+                <span id="pagination-next" class="text-sm sm:text-base font-medium text-gray-500 opacity-50 cursor-not-allowed">
+                    Seguinte &gt;
+                </span>
+            </nav>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', (event) => {
+            function trackEvent(eventName, eventParams = {}) {
+                console.log('Rastreando Evento:', eventName, eventParams);
+                if (typeof fbq === 'function') { fbq('track', eventName, eventParams); }
+                if (typeof gtag === 'function') { gtag('event', eventName, eventParams); }
+            }
+            const tableContainer = document.querySelector('.tabela-container');
+            if (tableContainer) {
+                tableContainer.addEventListener('scroll', () => {
+                    trackEvent('Scroll', { event_category: 'Interacao Tabela', event_label: 'Scroll na tabela de anuncios' });
+                }, { once: true });
+            }
+            const authorLink = document.getElementById('author-link');
+            if (authorLink) {
+                authorLink.addEventListener('click', () => {
+                    trackEvent('click_author', { event_category: 'Navegacao Rodape', event_label: 'Clique no link do autor (Silas Barboza)' });
+                });
+            }
+            const prevLink = document.getElementById('pagination-prev');
+            const nextLink = document.getElementById('pagination-next');
+            function paginationClickListener() {
+                const label = this.id === 'pagination-prev' ? 'Anterior' : 'Seguinte';
+                trackEvent('click_pagination', { event_category: 'Navegacao Rodape', event_label: `Clique na paginacao: ${label}` });
+            }
+            if (prevLink) { prevLink.addEventListener('click', paginationClickListener); }
+            if (nextLink) { nextLink.addEventListener('click', paginationClickListener); }
+        });
+    </script>
+
+</body>
+</html>
