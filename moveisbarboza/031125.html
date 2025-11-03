@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Análise de Anúncios - MOVEISBARBOZA</title> <script src="https://cdn.tailwindcss.com"></script>
+
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-VMNCQ25JSD"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-VMNCQ25JSD'); // Substitua pelo seu ID
+      // PageView é rastreado automaticamente por esta linha
+    </script>
+    <script>
+    !function(f,b,e,v,n,t,s)
+    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t,s)}(window, document,'script',
+    'https://connect.facebook.net/en_US/fbevents.js');
+    fbq('init', 'YOUR_PIXEL_ID'); // Substitua pelo seu ID
+    fbq('track', 'PageView'); // Rastreia PageView
+    </script>
+    <noscript><img height="1" width="1" style="display:none"
+    src="https://www.facebook.com/tr?id=YOUR_PIXEL_ID&ev=PageView&noscript=1"
+    /></noscript>
+    <style>
+        /* Fonte Inter (padrão do Tailwind) */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        /* NOVAS FONTES: Barlow e Barlow Condensed */
+        @import url('https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;700&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* bg-gray-100 */
+            padding: 30px; /* Margem da página */
+        }
+
+        /* Estilo para o header da tabela ficar fixo no topo durante o scroll vertical */
+        th {
+            position: sticky; /* Mantém o header da linha fixo no topo */
+            top: 0;
+            z-index: 10; /* Z-index para o header da linha */
+            background-color: #f9fafb; /* bg-gray-50 - Pode ser sobrescrito pelo estilo .sX */
+            padding-left: 0;
+            padding-right: 0;
+            font-family: 'Barlow', sans-serif; /* Fonte Barlow aplicada a todos os headers */
+        }
+
+        td {
+            padding-left: 0;
+            padding-right: 0;
+        }
+
+        /* Cores alternadas nas linhas - Pode ser sobrescrito pelo estilo .sX */
+        tbody tr:nth-child(even) {
+            background-color: #f9fafb; /* bg-gray-50 */
+        }
+        tbody tr:hover {
+            background-color: #f0f9ff; /* bg-blue-50 */
+        }
+
+        /* Container da tabela com scroll vertical e horizontal */
+        .tabela-container {
+            width: 100%;
+            overflow-x: auto; /* Permite scroll horizontal */
+            overflow-y: auto; /* Permite scroll vertical */
+            max-height: 70vh; /* Altura máxima */
+            border-radius: 0.5rem; /* rounded-lg */
+            border: 1px solid #e5e7eb; /* border border-gray-200 */
+            background-color: #ffffff; /* bg-white */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* shadow-lg */
+        }
+
+        /* --- COLUNAS COM LARGURA FIXA (Mantido caso precise usar com classes Tailwind) --- */
+        .col-campanha { width: 180px; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-left: 0.75rem; }
+        .col-item-id { width: 100px; max-width: 100px; padding-left: 0.4rem; }
+        .col-titulo-item { width: 450px; max-width: 450px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-left: 0.6rem; }
+        .col-vendas-totais { text-align: center; padding-left: 0.8rem; padding-right: 0.6rem; white-space: nowrap; }
+        .col-vendas-ads { text-align: center; padding-left: 0.6rem; padding-right: 0.6rem; white-space: nowrap; }
+        .col-receita-ads { text-align: right; padding-right: 0.45rem; white-space: nowrap; }
+        .col-invest-ads { text-align: right; padding-right: 0.45rem; white-space: nowrap; }
+        .col-roas { text-align: center; padding-left: 0.6rem; padding-right: 0.6rem; white-space: nowrap; }
+        .col-roas-obj { text-align: center; padding-left: 0.6rem; padding-right: 0.6rem; white-space: nowrap; }
+        .col-cvr { padding-left: 0.5rem; white-space: nowrap; }
+        .col-ctr { padding-left: 0.5rem; white-space: nowrap; }
+        .col-estoque { width: 60px; max-width: 60px; text-align: center; padding-left: 0.3rem; padding-right: 0.3rem; white-space: nowrap; }
+        .col-recomendacoes { padding-left: 0.5rem; padding-right: 0.5rem; }
+
+        /* --- FONTES ESPECÍFICAS --- */
+        thead th.col-vendas-totais, thead th.col-vendas-ads, thead th.col-receita-ads, thead th.col-invest-ads, thead th.col-estoque {
+            font-family: 'Barlow Condensed', sans-serif;
+        }
+        
+        /* --- ESTILOS PARA COLUNAS STICKY (COM ALTERAÇÃO 1) --- */
+        thead th:nth-child(1) {
+            /* position: sticky; (Removido) */
+            /* left: 0; (Removido) */
+            width: 100px; /* Alterado de 180px */
+            min-width: 100px; /* Alterado de 180px */
+            max-width: 100px; /* Alterado de 180px */
+            /* z-index: 11; (Removido) */
+            
+            /* Pedido 1: Ellipsis */
+            overflow: hidden; 
+            text-overflow: ellipsis;
+        }
+        tbody td:nth-child(1) {
+            /* position: sticky; (Removido) */
+            /* left: 0; (Removido) */
+            width: 100px; /* Alterado de 180px */
+            min-width: 100px; /* Alterado de 180px */
+            max-width: 100px; /* Alterado de 180px */
+            /* z-index: 11; (Removido) */
+            
+            /* Pedido 1: Ellipsis */
+            overflow: hidden; 
+            text-overflow: ellipsis;
+            /* white-space: nowrap; (Vem das classes .sX) */
+        }
+
+        thead th:nth-child(2),
+        tbody td:nth-child(2) {
+            /* position: sticky; (Removido) */
+            /* left: 180px; (Removido) */
+            width: 100px;
+            min-width: 100px;
+            max-width: 100px;
+            /* z-index: 11; (Removido) */
+        }
+
+        /* Garante que os headers sticky fiquem acima dos dados sticky */
+        /* Regra de z-index removida pois sticky foi desativado
+        thead th:nth-child(1),
+        thead th:nth-child(2) {
+            z-index: 12; 
+        }
+        */
+        /* --- FIM DOS ESTILOS STICKY --- */
+
+        /* --- [NOVO] Ajustes de colunas (Ellipsis, Wrap) --- */
+        
+        /* Pedido 2: Ellipsis na coluna "Título Item" (col 3) */
+        thead th:nth-child(3),
+        tbody td:nth-child(3) {
+            max-width: 450px; /* Essencial para ellipsis */
+            width: 450px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            /* white-space: nowrap; (Vem das classes .sX) */
+        }
+
+        /* Pedido 3: Nowrap na coluna "Recomendações" (col 13) */
+        thead th:nth-child(13),
+        tbody td:nth-child(13) {
+            white-space: nowrap;
+        }
+
+        /* Pedido 4: overflow-wrap no header "Estoque" (col 12) */
+        thead th:nth-child(12) {
+            overflow-wrap: normal;
+        }
+        /* --- FIM DOS NOVOS AJUSTES --- */
+
+
+        /* --- ESTILOS DO MBIG.html (SUBSTITUÍDOS) --- */
+        /* ESTILOS DO BARBOZA.html INSERIDOS AQUI */
+        .ritz .waffle a { color: inherit; }
+        /* Aplicando as fontes corretas conforme solicitado */
+        .ritz .waffle .s8{background-color:#e2f3eb;text-align:center;color:#000000;font-family:'Barlow', Arial, sans-serif;font-size:10pt;vertical-align:middle;white-space:nowrap;direction:ltr;padding:2px 3px 2px 3px;}
+        .ritz .waffle .s7{background-color:#edc9d0;text-align:center;color:#000000;font-family:'Barlow', Arial, sans-serif;font-size:10pt;vertical-align:middle;white-space:nowrap;direction:ltr;padding:2px 3px 2px 3px;}
+        .ritz .waffle .s20{background-color:#f9e0de;text-align:center;color:#000000;font-family:'Barlow', Arial, sans-serif;font-size:10pt;vertical-align:middle;white-space:nowrap;direction:ltr;padding:2px 3px 2px 3px;}
+        .ritz .waffle .s6{background-color:#f2dadf;text-align:center;color:#000000;font-family:'Barlow', Arial, sans-serif;font-size:10pt;vertical-align:middle;white-space:nowrap;direction:ltr;padding:2px 3px 2px 3px;}
+        .ritz .waffle .s17{background-color:#fffef9;text-align:center;color:#000000;font-family:'Barlow', Arial, sans-serif;font-size:10pt;vertical-align:middle;white-space:nowrap;direction:ltr;padding:2px 3px 2px 3px;}
+        .ritz .waffle .s12{background-color:#fff9e6;text-align:center;color:#000000;font-family:'Barlow', Arial, sans-serif;font-size:10pt;vertical-align:middle;white-space:nowrap;direction:ltr;padding:2px 3px 2px 3px;}
+        .ritz .waffle .s11{background-color:#f3f3f3;text-align:center;color:#000000;font-family:'Barlow', Arial, sans-serif;font-size:10pt;vertical-align:middle;white-space:nowrap;direction:ltr;padding:2px 3px 2px 3px;}
+        .ritz .waffle .s13{background-color:#f3dbe0;text-align:center;color:#000000;font-family:'Barlow', Arial, sans-serif;font-size:10pt;vertical-align:middle;white-space:nowrap;direction:ltr;padding:2px 3px 2px 3px;}
+        .ritz .waffle .s26{background-color:#9dc77b;text-align:center;color:#000000;font-family:'Barlow', Arial, sans-serif;font-size:10pt;vertical-align:middle;white-space:nowrap;direction:ltr;padding:2px 3px 2px 3px;}
+        .ritz .waffle .s15{background-color:#ebf7f1;text-align:center;color:#000000;font-family:'Barlow', Arial, sans-serif;font-size:10pt;vertical-align:middle;white-space:nowrap;direction:ltr;padding:2px 3px 2px 3px;}
+        .ritz .waffle .s4{background-color:#ffd666;text-align:center;color:#000000;font-family:'Barlow', Arial, sans-serif;font-size:10pt;vertical-align:middle;white-space:nowrap;direction:ltr;padding:2px 3px 2px 3px;}
+        .ritz .waffle .s3{background-color:#ffffff;text-align:center;color:#000000;font-family:'Barlow', Arial, sans-serif;font-size:10pt;vertical-align:middle;white-space:nowrap;direction:ltr;padding:2px 3px 2px 3px;}
+        .ritz .waffle .s24{background-color:#fff7e0;text-align:center;color:#000000;font-family:'Barlow', Arial, sans-serif;font-size:10pt;vertical-align:middle;white-space:nowrap;direction:ltr;padding:2px 3px 2px 3px;}
+        .ritz .waffle .s22{background-color:#fff0c6;text-align:center;color:#000000;font-family:'Barlow', Arial, sans-serif;font-size:10pt;vertical-align:middle;white-space:nowrap;direction:ltr;padding:2px 3px 2px 3px;}
+        .ritz .waffle .s21{background-color:#fefffe;text-align:center;color:#000000;font-family:'Barlow', Arial, sans-serif;font-size:10pt;vertical-align:middle;white-space:nowrap;direction:ltr;padding:2px 3px 2px 3px;}
+        .ritz .waffle .s23{background-color:#f8dddb;text-align:center;color:#000000;font-family:'Barlow', Arial, sans-serif;font-size:10pt;vertical-align:middle;white-space:nowrap;direction:ltr;padding:2px 3px 2px 3px;}
+        .ritz .waffle .s18{background-color:#ea4335;text-align:center;font-weight:bold;color:#ffffff;font-family:'Barlow', Arial, sans-serif;font-size:10pt;vertical-align:middle;white-space:nowrap;direction:ltr;padding:2px 3px 2px 3px;}
+        .ritz .waffle .s9{background-color:#b9cb75;text-align:center;color:#000000;font-family:'Barlow', Arial, sans-serif;font-size:10pt;vertical-align:middle;white-space:nowrap;direction:ltr;padding:2px 3px 2px 3px;}
+        .ritz .waffle .s5{background-color:#ffedb9;text-align:center;color:#000000;font-family:'Barlow', Arial, sans-serif;font-size:10pt;vertical-align:middle;white-space:nowrap;direction:ltr;padding:2px 3px 2px 3px;}
+        .ritz .waffle .s25{background-color:#fffcf3;text-align:center;color:#000000;font-family:'Barlow', Arial, sans-serif;font-size:10pt;vertical-align:middle;white-space:nowrap;direction:ltr;padding:2px 3px 2px 3px;}
+        .ritz .waffle .s16{background-color:#57bb8a;text-align:center;color:#000000;font-family:'Barlow', Arial, sans-serif;font-size:10pt;vertical-align:middle;white-space:nowrap;direction:ltr;padding:2px 3px 2px 3px;}
+        .ritz .waffle .s14{background-color:#e9bec7;text-align:center;color:#000000;font-family:'Barlow', Arial, sans-serif;font-size:10pt;vertical-align:middle;white-space:nowrap;direction:ltr;padding:2px 3px 2px 3px;}
+        .ritz .waffle .s19{background-color:#e6b4be;text-align:center;color:#000000;font-family:'Barlow', Arial, sans-serif;font-size:10pt;vertical-align:middle;white-space:nowrap;direction:ltr;padding:2px 3px 2px 3px;}
+
+        /* Colunas "Campanha", "Título Item" e "Recomendações" + Cabeçalhos */
+        .ritz .waffle .s0{background-color:#bdbdbd;text-align:center;color:#000000;font-family:'Barlow Condensed', Arial, sans-serif;font-size:10pt;vertical-align:middle;white-space:nowrap;direction:ltr;padding:2px 3px 2px 3px;}
+        .ritz .waffle .s1{background-color:#bdbdbd;text-align:left;color:#000000;font-family:'Barlow Condensed', Arial, sans-serif;font-size:10pt;vertical-align:middle;white-space:nowrap;direction:ltr;padding:2px 3px 2px 3px;}
+        .ritz .waffle .s2{background-color:#ffffff;text-align:left;color:#000000;font-family:'Barlow Condensed', Arial, sans-serif;font-size:10pt;vertical-align:middle;white-space:nowrap;direction:ltr;padding:2px 3px 2px 3px;}
+        .ritz .waffle .s10{background-color:#f3f3f3;text-align:left;color:#000000;font-family:'Barlow Condensed', Arial, sans-serif;font-size:10pt;vertical-align:middle;white-space:nowrap;direction:ltr;padding:2px 3px 2px 3px;}
+        /* --- FIM DOS ESTILOS SUBSTITUÍDOS --- */
+    </style>
+</head>
+<body>
+
+    <div>
+        <div class="flex items-center justify-between mb-8">
+            <div class="flex items-center">
+                <img src="https://mla-s2-p.mlstatic.com/708938-MLA73688250717_122023-O.jpg"
+                     alt="Logo MOVEISBARBOZA"
+                     class="h-16 mr-4" style="max-height: 64px;">
+                <div>
+                    <h1 class="text-xl sm:text-3xl font-bold text-gray-800">Análise ML Product Ads</h1>
+                    <h2 class="text-lg sm:text-xl font-semibold text-gray-600">MOVEISBARBOZA</h2>
+                </div>
+            </div>
+            <div class="text-right">
+                <h2 class="text-sm leading-tight sm:text-xl font-semibold text-gray-600">Últimos 14 Dias</h2>
+                <p class="text-xs sm:text-base font-medium text-gray-500">20/10/25 a 02/11/25</p>
+            </div>
+        </div>
+
+        <!-- O CONTEÚDO DA TABELA ABAIXO FOI SUBSTITUÍDO -->
+        <div class="tabela-container ritz grid-container" dir="ltr">
+            <table class="waffle" cellspacing="0" cellpadding="0">
+            <thead>
+            <!-- Linha com A, B, C... removida -->
+            <tr style="height: 20px">
+            <!-- Coluna com 1, 2, 3... removida -->
+            <td class="s0" dir="ltr">Campanha</td>
+            <td class="s0" dir="ltr">Item ID</td>
+            <td class="s0" dir="ltr">Título Item</td>
+            <td class="s0" dir="ltr">Vendas<br>Totais</td>
+            <td class="s0" dir="ltr">Vendas<br>Ads</td>
+            <td class="s0" dir="ltr">Receita<br>Ads</td>
+            <td class="s0" dir="ltr">Invest.<br>Ads</td>
+            <td class="s0" dir="ltr">ROAS</td>
+            <td class="s0" dir="ltr">ROAS<br>Obj.</td>
+            <td class="s0" dir="ltr">CVR<br>(%)</td>
+            <td class="s0" dir="ltr">CTR<br>(%)</td>
+            <td class="s1" dir="ltr">Estoque</td>
+            <td class="s0" dir="ltr">Recomendações</td>
+            </tr>
+            </thead>
+            <tbody>
+            <tr style="height: 20px">
+            <!-- Coluna com 1, 2, 3... removida -->
+            <td class="s2">Minha 1a campanha</td>
+            <td class="s3">3847895893</td>
+            <td class="s2">Mesa De Cabeceira Cama Box 1 Gaveta Com Nicho Off/freijó Móveis Barboza</td>
+            <td class="s4">25</td>
+            <td class="s5">12</td>
+            <td class="s3">R$ 1.862,50</td>
+            <td class="s3">R$ 364,69</td>
+            <td class="s6">5,1x</td>
+            <td class="s3">5,9x</td>
+            <td class="s7">1,4%</td>
+            <td class="s8">0,56%</td>
+            <td class="s9">353</td>
+            <td class="s2" dir="ltr">Criar nova campanha &quot;Controle ACOS&quot;</td>
+            </tr>
+            <tr style="height: 20px">
+            <!-- Coluna com 1, 2, 3... removida -->
+            <td class="s10">Minha 1a campanha</td>
+            <td class="s11">5105863216</td>
+            <td class="s10">Painel Tv Polegadas Sala Quarto Nicho Prateleira</td>
+            <td class="s12">5</td>
+            <td class="s12">5</td>
+            <td class="s11">R$ 999,50</td>
+            <td class="s11">R$ 188,03</td>
+            <td class="s13">5,3x</td>
+            <td class="s11">5,9x</td>
+            <td class="s14">0,7%</td>
+            <td class="s15">0,47%</td>
+            <td class="s16">986</td>
+            <td class="s10" dir="ltr">Criar nova campanha &quot;Controle ACOS&quot;</td>
+            </tr>
+            <tr style="height: 20px">
+            <!-- Coluna com 1, 2, 3... removida -->
+            <td class="s2">Minha 1a campanha</td>
+            <td class="s3">5267575594</td>
+            <td class="s2">Mesa De Cabeceira Decore Retrô 1 Gaveta - Várias Cores - Bar</td>
+            <td class="s17">2</td>
+            <td class="s18">0</td>
+            <td class="s3">R$ 0,00</td>
+            <td class="s3">R$ 17,70</td>
+            <td class="s19">0,0x</td>
+            <td class="s3">null</td>
+            <td class="s19">0,0%</td>
+            <td class="s20">0,19%</td>
+            <td class="s16">14993</td>
+            <td class="s2" dir="ltr">Criar nova campanha &quot;Controle ACOS&quot;</td>
+            </tr>
+            <tr style="height: 20px">
+            <!-- Coluna com 1, 2, 3... removida -->
+            <td class="s10">Minha 1a campanha</td>
+            <td class="s11">4206742395</td>
+            <td class="s10">Balcão Fruteira Suporte Bebedouro D Água Cozinha Galão Fenix</td>
+            <td class="s18">0</td>
+            <td class="s18">0</td>
+            <td class="s11">R$ 0,00</td>
+            <td class="s11">R$ 58,14</td>
+            <td class="s19">0,0x</td>
+            <td class="s11">null</td>
+            <td class="s19">0,0%</td>
+            <td class="s21">0,27%</td>
+            <td class="s16">14990</td>
+            <td class="s10" dir="ltr">Criar nova campanha &quot;Controle ACOS&quot;</td>
+            </tr>
+            <tr style="height: 20px">
+            <!-- Coluna com 1, 2, 3... removida -->
+            <td class="s2" dir="ltr">Controle ACOS</td>
+            <td class="s3"></td>
+            <td class="s2" dir="ltr">*** Criar campanha ***</td>
+            <td class="s3"></td>
+            <td class="s3"></td>
+            <td class="s3"></td>
+            <td class="s3"></td>
+            <td class="s3"></td>
+            <td class="s3"></td>
+            <td class="s3"></td>
+            <td class="s3"></td>
+            <td class="s3"></td>
+            <td class="s2" dir="ltr">Orçamento: R$50 / ROAS Objetivo: 20x</td>
+            </tr>
+            <tr style="height: 20px">
+            <!-- Coluna com 1, 2, 3... removida -->
+            <td class="s10">Minha 1a campanha</td>
+            <td class="s11"></td>
+            <td class="s10" dir="ltr">*** Recomendações de campanha ***</td>
+            <td class="s11"></td>
+            <td class="s11"></td>
+            <td class="s11"></td>
+            <td class="s11"></td>
+            <td class="s11"></td>
+            <td class="s11"></td>
+            <td class="s11"></td>
+            <td class="s11"></td>
+            <td class="s11"></td>
+            <td class="s10" dir="ltr">Orçamento: R$65 / ROAS Objetivo: 5,8x</td>
+            </tr>
+            <tr style="height: 20px">
+            <!-- Coluna com 1, 2, 3... removida -->
+            <td class="s2">-</td>
+            <td class="s3">5406510996</td>
+            <td class="s2">Escrivaninha Jr Moveis Vitória Mdf De 70cm X 78cm X 40cm Bege</td>
+            <td class="s22">10</td>
+            <td class="s18">0</td>
+            <td class="s3">R$ 0,00</td>
+            <td class="s3">R$ 14,27</td>
+            <td class="s19">0,0x</td>
+            <td class="s3">null</td>
+            <td class="s19">0,0%</td>
+            <td class="s23">0,19%</td>
+            <td class="s16">967</td>
+            <td class="s2" dir="ltr">Reintegrar na campanha &quot;Minha 1ª Campanha&quot;</td>
+            </tr>
+            <tr style="height: 20px">
+            <!-- Coluna com 1, 2, 3... removida -->
+            <td class="s10">-</td>
+            <td class="s11">5343739778</td>
+            <td class="s10 softmerge"><div class="softmerge-inner" style="width:467px;left:-1px">Mesinha Computador Multiuso Quarto Sala Escritorio 1 Gaveta Cor Canela/off Romar Vitória</div></td>
+            <td class="s24">6</td>
+            <td class="s18">0</td>
+            <td class="s11">R$ 0,00</td>
+            <td class="s11">R$ 0,00</td>
+            <td class="s11"></td>
+            <td class="s11">null</td>
+            <td class="s11"></td>
+            <td class="s11"></td>
+            <td class="s16">830</td>
+            <td class="s10" dir="ltr">Criar nova campanha &quot;Teste&quot;</td>
+            </tr>
+            <tr style="height: 20px">
+            <!-- Coluna com 1, 2, 3... removida -->
+            <td class="s2">-</td>
+            <td class="s3">4025896559</td>
+            <td class="s2">Mesa Escrivaninha Office Notebook Computador Com Gaveta Vt Cor Preto</td>
+            <td class="s25">3</td>
+            <td class="s18">0</td>
+            <td class="s3">R$ 0,00</td>
+            <td class="s3">R$ 0,00</td>
+            <td class="s3"></td>
+            <td class="s3">null</td>
+            <td class="s3"></td>
+            <td class="s3"></td>
+            <td class="s26">482</td>
+            <td class="s2" dir="ltr">Criar nova campanha &quot;Teste&quot;</td>
+            </tr>
+            <tr style="height: 20px">
+            <!-- Coluna com 1, 2, 3... removida -->
+            <td class="s10">-</td>
+            <td class="s11">5241949580</td>
+            <td class="s10">Painel Tv Até 50 Polegadas Ripado Com Nicho E Prateleira</td>
+            <td class="s17">2</td>
+            <td class="s18">0</td>
+            <td class="s11">R$ 0,00</td>
+            <td class="s11">R$ 0,00</td>
+            <td class="s11"></td>
+            <td class="s11">null</td>
+            <td class="s11"></td>
+            <td class="s11"></td>
+            <td class="s16">2808</td>
+            <td class="s10" dir="ltr">Criar nova campanha &quot;Teste&quot;</td>
+            </tr>
+            <tr style="height: 20px">
+            <!-- Coluna com 1, 2, 3... removida -->
+            <td class="s2" dir="ltr">Teste</td>
+            <td class="s3"></td>
+            <td class="s2" dir="ltr">*** Criar campanha ***</td>
+            <td class="s3"></td>
+            <td class="s3"></td>
+            <td class="s3"></td>
+            <td class="s3"></td>
+            <td class="s3"></td>
+            <td class="s3"></td>
+            <td class="s3"></td>
+            <td class="s3"></td>
+            <td class="s3"></td>
+            <td class="s2" dir="ltr">Orçamento: R$50 / ROAS Objetivo: 10x</td>
+            </tr>
+            </tbody>
+            </table>
+        </div>
+        <!-- FIM DA ÁREA SUBSTITUÍDA -->
+
+        <footer class="mt-8">
+            <nav class="flex justify-between items-center w-full">
+                <span id="pagination-prev" class="text-sm sm:text-base font-medium text-gray-500 opacity-50 cursor-not-allowed">
+                    &lt; Anterior
+                </span>
+                <div class="text-center" style="font-size: 7pt;">
+                    <p class="text-gray-600">
+                        Desenvolvido por
+                        <a id="author-link" href="https://www.linkedin.com/in/silasbarboza/?utm_source=roasxacos.onrender.com" target="_blank" rel="noopener noreferrer" class="font-medium text-blue-600 hover:text-blue-800">
+                            Silas Barboza
+                        </a>
+                        | 2025
+                    </p>
+                </div>
+                <span id="pagination-next" class="text-sm sm:text-base font-medium text-gray-500 opacity-50 cursor-not-allowed">
+                    Seguinte &gt;
+                </span>
+            </nav>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', (event) => {
+            function trackEvent(eventName, eventParams = {}) {
+                console.log('Rastreando Evento:', eventName, eventParams);
+                if (typeof fbq === 'function') { fbq('track', eventName, eventParams); }
+                if (typeof gtag === 'function') { gtag('event', eventName, eventParams); }
+            }
+            const tableContainer = document.querySelector('.tabela-container');
+            if (tableContainer) {
+                tableContainer.addEventListener('scroll', () => {
+                    trackEvent('Scroll', { event_category: 'Interacao Tabela', event_label: 'Scroll na tabela de anuncios' });
+                }, { once: true });
+            }
+            const authorLink = document.getElementById('author-link');
+            if (authorLink) {
+                authorLink.addEventListener('click', () => {
+                    trackEvent('click_author', { event_category: 'Navegacao Rodape', event_label: 'Clique no link do autor (Silas Barboza)' });
+                });
+            }
+            const prevLink = document.getElementById('pagination-prev');
+            const nextLink = document.getElementById('pagination-next');
+            function paginationClickListener() {
+                const label = this.id === 'pagination-prev' ? 'Anterior' : 'Seguinte';
+                trackEvent('click_pagination', { event_category: 'Navegacao Rodape', event_label: `Clique na paginacao: ${label}` });
+            }
+            if (prevLink) { prevLink.addEventListener('click', paginationClickListener); }
+            if (nextLink) { nextLink.addEventListener('click', paginationClickListener); }
+        });
+    </script>
+
+</body>
+</html>
+
